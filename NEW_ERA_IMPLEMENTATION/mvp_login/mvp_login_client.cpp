@@ -856,3 +856,47 @@ bool ParseC1_F3_03_JoinMapServerResponsePlain(const std::vector<uint8_t>& c1,
 }
 
 } } // namespace newera::mvp (bloco 1.3-C)
+
+// (bloco 1.3-D dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-D — POST-JOIN SELF INFO — F3:0xE0 GCNewCharacterInfoSend (GS) —
+// wire-real per spec 1.3-D (NEW_ERA_PROTOCOL_MVP_POSTJOIN_SELFINFO_SPEC.md).
+// EVIDÊNCIA: GCNewCharacterInfoSend (GS_Protocol.cpp :3411-:3461) sob
+// #if(GAMESERVER_EXTRA==1); pMsg.header.set(0xF3,0xE0,sizeof(pMsg)) :3417;
+// DataSend(lpObj->Index,(BYTE*)&pMsg,pMsg.header.size) :3458 (serial C1;
+// size = sizeof(struct) TOTAL — padrão provado em F3:01/F3:03).
+// ANTI-INVENÇÃO: a struct PMSG_NEW_CHARACTER_INFO_SEND NÃO está na evidência
+// (offsets/tamanho [NOT RECOVERED]) e o client upstream 580472e NÃO tem
+// handler (sub-switch F3 :12958-:13038 = 24 subs, SEM 0xE0 e SEM default) —
+// o consumidor é um client modificado EXTRA. Parser = VALIDADOR de frame
+// header-only; payload permanece OPACO (36 campos conhecidos só pelo nome,
+// na ordem de atribuição :3419-:3456). Sem TX (pacote é S→C). Irmão:
+// GCNewCharacterCalcSend :3463 = F3:0xE1.
+
+// S->C: classificador/validador do frame (C1 plain; payload opaco).
+struct ParsedSelfInfo {
+    uint8_t  head;            // 0xF3 (:3417)
+    uint8_t  sub;             // 0xE0 (:3417)
+    size_t   frameSize;       // c1[1] = total (= sizeof(PMSG_NEW_CHARACTER_INFO_SEND) no GS)
+    std::vector<uint8_t> payloadOpaque;  // bytes [4..): layout [NOT RECOVERED]
+};
+
+bool ParseC1_F3_E0_SelfInfoResponsePlain(const std::vector<uint8_t>& c1,
+                                         ParsedSelfInfo& out, std::string& err) {
+    if (c1.size() < 4 || c1[1] != c1.size()) {
+        err = "F3:E0: tamanho C1 inconsistente (size != total; got " +
+              std::to_string(c1.size()) + " B)";
+        return false;
+    }
+    if (c1[0] != 0xC1) { err = "F3:E0: espera C1"; return false; }
+    if (c1[2] != 0xF3 || c1[3] != 0xE0) { err = "F3:E0: head/sub invalidos"; return false; }
+    out.head = c1[2];
+    out.sub = c1[3];
+    out.frameSize = c1.size();
+    out.payloadOpaque.assign(c1.begin() + 4, c1.end());   // layout [NOT RECOVERED]
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-D)
