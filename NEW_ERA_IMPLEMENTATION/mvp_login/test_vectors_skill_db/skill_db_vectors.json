@@ -1,0 +1,8 @@
+{
+  "caso": "skill_tx_0xdb_req_resp",
+  "req_c1_hex": "c10cdb0009323c0101010102",
+  "resp_damage_c1_hex": "c10a1181000123c50044",
+  "expected": { "skillType": 9, "skillType_hex": "0x0009", "x": 50, "y": 60, "serial": 1, "count": 1, "targetKey": 257, "targetKey_hex": "0x0101", "skillSerial": 2, "req_size": 12, "resp_key": 256, "resp_key_hex": "0x0100", "lastDamage": 291, "lastDamage_hex": "0x0123", "missed": 0 },
+  "notas": { "serial_eh_valor_de_teste": "MakeSkillSerialNumber [NOT RECOVERED]", "send_encrypt": "spe.Send(TRUE) — wrap C3 [NOT RECOVERED]; builder = C1 plain pre-encrypt" },
+  "fonte_resp": "test_vectors_attack_tx_11/attack_tx_11_vectors.json#resp_damage_c1_hex"
+}

@@ -1664,3 +1664,63 @@ bool BuildAsio_BOTH_MESSAGE_FromClassicC1(const std::vector<uint8_t>& innerC1,
 }
 
 } } // namespace newera::mvp (bloco 1.3-N)
+
+// (bloco 1.3-O dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-O — SKILL TX — SendRequestMagicAttack (C1 PACKET_MAGIC_ATTACK 0xDB, C->S)
+// per spec 1.3-O (NEW_ERA_PROTOCOL_MVP_SKILL_TX_SPEC.md).
+// EVIDÊNCIA: macro (wsclientinline.h :600-:616) == inline :618-:633:
+//   spe.Init(0xC1, PACKET_MAGIC_ATTACK=0xDB :25);
+//   spe << HIBYTE(Type) << LOBYTE(Type) << x << y
+//       << MakeSkillSerialNumber(&Serial) << Count;
+//   for (i=0;i<Count;i++)
+//       spe << (Key[i]>>8) << (Key[i]&0xff) << (BYTE)SkillSerial;  // 3 B/alvo
+//   spe.Send(TRUE);   // bEncrypt=TRUE: PATH C3-capable — a criptografia em si
+//                     // acontece na global SendPacket [NOT RECOVERED]; o
+//                     // builder produz o C1 PLAIN pré-encrypt (autoritativo).
+// Layout: [C1][size=9+3*Count][DB][TypeH][TypeL][x][y][Serial][Count]
+//         + por alvo [KeyH][KeyL BE sem máscara][SkillSerial]. Count=1 => 12 B.
+// GS RX: case 0x19 -> CGSkillAttackRecv (GS_Protocol.cpp :121-:122; 0xDB NAO
+// ocorre no GS — tradução 0xDB->0x19 [NOT RECOVERED], análoga ao join 1.3-C).
+// Serial: MakeSkillSerialNumber [NOT RECOVERED] (contador client-side; valor
+// de teste documentado no golden).
+
+// C->S: builder wire-real do request de skill (C1 0xDB, multi-alvo).
+// count em [1,82] (size u8: 9+3*count <= 255); skillSerial repetido por alvo.
+bool BuildC1_SkillRequestWire(uint16_t skillType, uint8_t x, uint8_t y,
+                              uint8_t serial, uint8_t count,
+                              const uint16_t* targetKeys, uint8_t skillSerial,
+                              std::vector<uint8_t>& out, std::string& err) {
+    if (count < 1 || count > 82 || targetKeys == nullptr) {
+        err = "0xDB TX: count invalido (1..82; got " + std::to_string((int)count) + ")";
+        return false;
+    }
+    const size_t total = 9 + 3 * (size_t)count;
+    out.clear();
+    out.reserve(total);
+    out.push_back(0xC1);                              // spe.Init(:29)
+    out.push_back((uint8_t)total);                    // size C1 = 9+3*count
+    out.push_back(0xDB);                              // PACKET_MAGIC_ATTACK (:25)
+    out.push_back((uint8_t)(skillType >> 8));         // HIBYTE(Type) :607
+    out.push_back((uint8_t)(skillType & 0xFF));       // LOBYTE(Type) :607
+    out.push_back(x);                                 // :607
+    out.push_back(y);                                 // :607
+    out.push_back(serial);                            // MakeSkillSerialNumber :607
+    out.push_back(count);                             // :607
+    for (uint8_t i = 0; i < count; ++i) {             // loop :609-:613
+        out.push_back((uint8_t)(targetKeys[i] >> 8)); // KeyH :611
+        out.push_back((uint8_t)(targetKeys[i] & 0xFF));
+        out.push_back(skillSerial);                   // (BYTE)SkillSerial :612
+    }
+    if (out.size() != total) {                        // bounds-check (paranoia)
+        err = "0xDB TX: builder interno inconsistente (" + std::to_string(out.size()) +
+              " B; espera " + std::to_string(total) + ")";
+        out.clear();
+        return false;
+    }
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-O)

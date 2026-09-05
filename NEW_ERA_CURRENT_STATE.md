@@ -511,7 +511,7 @@
   `ExtractClassicFromBothMessage_Asio` +
   `ApplyFrame_BOTH_MESSAGE_Tunnel_DamageOnly`. Two-TU (espelho ODR)
   retomado. Binários removidos. [LEDGER §77].
-- **1.3-N (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **Attack TX completo
+- **1.3-N (2026-09-05)**: **Attack TX completo
   (spec+impl+golden+loopback, exit 0×2) — 1º TX DE COMBATE + ciclo mínimo
   REQ→RESP fechado** — macro SendRequestAttack (wsclientinline :518-:527):
   `spe.Init(0xC1, 0x11)` + Key BE **sem máscara** + **AT_ATTACK1=0x78**
@@ -526,6 +526,19 @@
   `kAt_ATTACK1` + `BuildC1_AttackRequestWire` +
   `BuildAsio_BOTH_MESSAGE_FromClassicC1`. Binários removidos.
   [LEDGER §78].
+- **1.3-O (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **Skill TX completo
+  (spec+impl+golden+loopback, exit 0×2) — magic attack multi-alvo provado** —
+  macro SendRequestMagicAttack (wsclientinline :600-:616 == inline
+  :618-:633): **C1 0xDB [C1][size=9+3·Count][DB][Type BE][x][y][Serial]
+  [Count] + por alvo [Key BE sem máscara][SkillSerial]** (Count=1 ⇒ 12 B;
+  ≤82); **spe.Send(TRUE)** pede encrypt — wrap C3 [NOT RECOVERED]; builder
+  = C1 plain pré-encrypt. Serial [NOT RECOVERED] (valor de teste
+  documentado). GS: case 0x19 → CGSkillAttackRecv :121-:122 (0xDB ausente
+  no GS — tradução 0xDB→0x19 [NOT RECOVERED], análoga ao join 1.3-C).
+  Ciclo provado: builder → 12 B exatos `c10cdb0009323c0101010102` → server
+  memcmp golden → RESP damage (golden 1.3-N em cadeia) → lastDamage=0x0123;
+  extra: Count=2 ⇒ 15 B e guard count=0. `BuildC1_SkillRequestWire`.
+  Binários removidos. [LEDGER §79].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -536,10 +549,11 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-O (decisão do usuário, 2026-09-05)**: **skill TX mínimo (0xDB
-   SendRequestMagicAttack) OU ack/anim do attack no viewport** — escolher
-   O QUE FOR MAIS SIMPLES na fase de evidência (critério explícito do
-   usuário; decidir com os arquivos abertos e registrar a escolha na spec).
+1. **1.3-P — A ESCOLHER** (decisão do usuário): (a) **ack/anim RX do
+   combat** (0x18 action / 0x19 skill family S→C — fecha o espelho visual
+   do combate), OU (b) **C4 RX / DES ≥701** (TODO global do Ledger), OU
+   (c) **PacketManager seeding m_XorFilter/LoadKey** (§15 item 2), OU
+   (d) **fechamento documental da FASE 1** (consolidação MVP).
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —
