@@ -1,0 +1,8 @@
+{
+  "caso": "viewport_spawn_c2_0x13_buffs",
+  "resp_c2_hex": "c2001d1302010100110a140b151001aa020200221e281f292003010203",
+  "expected_parse": [
+    { "key": 257, "type": 17, "x": 10, "y": 20, "dir": 1, "angleDeg": 0, "buffs": [ 170 ] },
+    { "key": 514, "type": 34, "x": 30, "y": 40, "dir": 2, "angleDeg": 45, "buffs": [ 1, 2, 3 ] }
+  ]
+}

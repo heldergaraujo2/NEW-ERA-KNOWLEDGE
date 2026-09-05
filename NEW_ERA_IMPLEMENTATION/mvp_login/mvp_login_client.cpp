@@ -920,6 +920,12 @@ namespace newera { namespace mvp {
 // :2595, buildTime=(TypeH&0x70)>>4 :2596); dir=Path>>4 :2637 com ângulo
 // ((dir-1)*45) :2637. CreateMonster(Type,X,Y,Key) :2606; buffs -> RegisterBuff
 // :2616; TargetX/Y -> PathFinding2 :2701. Sem TX (S→C).
+// 1.3-F HARDEN: s_BuffCount limitado a MAX_BUFF_SLOT_INDEX=16 — o array
+// declarado s_BuffEffectState[16] (:599; define.h :613) significa que o
+// legado leria OUT-OF-BOUNDS se o server mandasse >16; parser rejeita.
+
+// 1.3-F: limite do array declarado (evidência :599 + define.h :613)
+static constexpr uint8_t kViewportMaxBuffSlotIndex = 16;
 
 // S->C: 1 entidade de viewport (somente campos provados).
 struct SpawnEntity {
@@ -971,6 +977,11 @@ bool ParseC2_ViewportMonsterSpawnPlain(const std::vector<uint8_t>& pkt,
         e.dir = pkt[off + 8] >> 4;                                          // :2637
         e.angleDeg = ((int)e.dir - 1) * 45;                                 // :2637
         const uint8_t nBuffs = pkt[off + 9];                                // s_BuffCount
+        if (nBuffs > kViewportMaxBuffSlotIndex) {                           // 1.3-F harden
+            err = "0x13: entidade " + std::to_string(i) + " s_BuffCount=" +
+                  std::to_string(nBuffs) + " > MAX_BUFF_SLOT_INDEX (16) :599/:613";
+            out.clear(); return false;
+        }
         if (off + 10 + nBuffs > pkt.size()) {
             err = "0x13: entidade " + std::to_string(i) + " buffs truncados";
             out.clear(); return false;

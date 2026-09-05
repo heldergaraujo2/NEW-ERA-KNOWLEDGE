@@ -45,3 +45,11 @@
 
 ## 6. Conclusão
 **(1) layout provado** — struct na evidência (H :588-:600) + handler completo (C1 :2585-:2712) + stride explícito (:2710) + MAX_BUFF_SLOT_INDEX (D :613). Presunção única (não-bloqueante): size C2 = total do frame (validado como consistência no parser; golden da P2/2 vai fixá-lo). Viewport de players (0x12, `ReceiveCreatePlayerViewport` :2167-:2379) fica como próximo candidato natural.
+
+## BUFFS E STRIDE VARIÁVEL (1.3-F)
+- **Definição**: após cada `PCREATE_MONSTER` (10 B fixos) existem exatamente `s_BuffCount` bytes de buff (`s_BuffEffectState`), ANTES da próxima entidade.
+- **Fonte do count**: último byte da própria entidade — `PCREATE_MONSTER.s_BuffCount` (offset off+9; H :598).
+- **Limite**: `MAX_BUFF_SLOT_INDEX = 16` (array declarado `s_BuffEffectState[MAX_BUFF_SLOT_INDEX]` H :599; `#define` D :613). O legado NÃO valida: com count>16 o loop leria OUT-OF-BOUNDS do array[16] — na prática o server respeita 16.
+- **Stride**: `Offset += sizeof(PCREATE_MONSTER) − (MAX_BUFF_SLOT_INDEX − s_BuffCount)` = **10 + s_BuffCount** (C1 :2710).
+- **Comportamento do legado** (C1 :2614-:2619): `for(j=0; j<s_BuffCount; ++j)` → `RegisterBuff(static_cast<eBuffState>(Data2->s_BuffEffectState[j]), o)` — assinatura real **(eBuffState, OBJECT\*)**, não "(Key, buffByte)"; log de debug por buff :2618.
+- **Harden 1.3-F no core** (`ParseC2_ViewportMonsterSpawnPlain`): rejeita `s_BuffCount > 16` (`kViewportMaxBuffSlotIndex`, erro claro com valor e evidência :599/:613); mantém erro de buff truncado (`off+10+n > size`) e de bytes residuos; `s_BuffCount == 0` inalterado (stride 10); `SpawnEntity.buffs` preenchido com exatamente `s_BuffCount` bytes. Prova golden/loopback com n>0 fica para a P2/2.

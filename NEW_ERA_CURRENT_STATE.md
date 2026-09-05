@@ -404,7 +404,7 @@
   `NEW_ERA_PROTOCOL_MVP_POSTJOIN_SELFINFO_SPEC.md` (classe (2)) + validador
   header-only payload-opaco no core (`ParseC1_F3_E0_SelfInfoResponsePlain`,
   SYNTAX OK; sem TX). [LEDGER §68].
-- **1.3-E (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **viewport spawn 0x13
+- **1.3-E (2026-09-05)**: **viewport spawn 0x13
   completo (spec+impl+golden+loopback, exit 0×2, C2) — 1ª ENTIDADE VISÍVEL do
   MVP** — spec `NEW_ERA_PROTOCOL_MVP_VIEWPORT_SPAWN_SPEC.md` (classe (1):
   HeadCode 0x13 S→C, framing C2 provado pelo cast :2587/PWMSG_HEADER :83-:89;
@@ -415,6 +415,14 @@
   (key=0x0123/type=0x02AA/x=100/y=200/dir=2→45°); parser
   `ParseC2_ViewportMonsterSpawnPlain` + `SpawnEntity`. Binários removidos.
   [LEDGER §69].
+- **1.3-F (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **viewport 0x13
+  buffs/stride variável completo (spec§BUFFS + harden + golden + loopback,
+  exit 0×2)** — C2 29 B c/ 2 entidades (strides **11/13** provados no wire,
+  fórmula :2710); buffs validados byte-a-byte em `SpawnEntity.buffs`
+  (A=[0xAA], B=[01 02 03]); harden `s_BuffCount>16` rejeitado
+  (`kViewportMaxBuffSlotIndex`; :599/:613); negativos (truncado/resíduo).
+  Spec 5.350 B c0ed6474… · core 50.352 B 78c4e2bb… SYNTAX OK. Binários
+  removidos. [LEDGER §70].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -425,11 +433,10 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-F — A DEFINIR PELO USUÁRIO** (decisão registrada): (a) viewport
-   **0x12 create character viewport** (spawn de players — ReceiveCreatePlayerViewport
-   :2167-:2379, recebe Size do dispatcher), OU (b) **spawn com buffs (stride
-   variável)** no 0x13 para fechar MAX_BUFF_SLOT_INDEX=16 no parser (entidades
-   com s_BuffCount>0 + RegisterBuff :2614-:2619).
+1. **1.3-G — viewport 0x12 CreateCharacterViewport** (decisão do usuário:
+   ver player/NPC no mundo) — handler `ReceiveCreatePlayerViewport` :2167-:2379
+   (recebe `Size` do dispatcher :13100-:13103 — indicio de layout variável);
+   levantar struct/cast/loop + framing C1×C2 antes de implementar.
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —
