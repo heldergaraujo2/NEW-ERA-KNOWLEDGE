@@ -433,7 +433,7 @@
   frame de 115 e o valor foi corrigido pela evidência). Parser
   `ParseViewportCharacterSpawnPlain_C2` + `SpawnCharacter`. Binários
   removidos. [LEDGER §71].
-- **1.3-H (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **WorldState loop
+- **1.3-H (2026-09-05)**: **WorldState loop
   completo (spec+impl+golden+loopback, exit 0×2)** — agregador spawn-only
   0x12+0x13: `WorldState.entities` (unordered_map key→EntityRecord, kind
   Character/Monster) + `ApplyFrame_C2_12_Characters`/`ApplyFrame_C2_13_Monsters`
@@ -444,6 +444,16 @@
   TWO-TU c/ espelho ODR do bloco 1.3-H. Spec
   `NEW_ERA_PROTOCOL_MVP_WORLDSTATE_LOOP_SPEC.md`. Binários removidos
   (1.681.320 B liberados). [LEDGER §72].
+- **1.3-I (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **viewport delete 0x14
+  completo (spec+impl+golden+loopback, exit 0×2, C1 — o único do ciclo em C1)**
+  — spec classe (1): handler :2793-:2848; PHEADER_DEFAULT :113-:118 +
+  PDELETE_CHARACTER :622-:626 (2 B BE, **stride fixo 2** :2846); Key
+  **BE &0x7FFF** :2814/:2817; DeleteFlag=b15 **dead read** documentado;
+  DeleteCharacter tolerante :2839. Ciclo provado: spawn 4 → delete 2
+  (0x0100/0x0101 removidas; raw 0x9999→0x1999 **ignorada sem falhar**) →
+  trunc 9 B rejeitado c/ estado intocado. Parser
+  `ParseViewportDeletePlain_C1` + `ApplyFrame_DeleteEntities_C1` (erase
+  tolerante). Binários removidos. [LEDGER §73].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -454,12 +464,13 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-I — A ESCOLHER NO PRÓXIMO COMANDO** (decisão do usuário):
-   (a) **delete viewport head 0x14** (remove entity do WorldState — handler
-   `ReceiveDeleteCharacterViewport` :2793, dispatch :13116-:13119), OU
-   (b) **movement/position** (PACKET_MOVE :13094-:13095 / PACKET_POSITION
-   :13097-:13099 — atualiza x/y das entidades). Ambos fecham o ciclo
-   spawn/delete/move do world tick.
+1. **1.3-J — movement/position** (decisão do usuário): primeiro
+   **BOTH_POSITION do protocolo novo** (olc::net — SendPositionNew
+   ProtocolSend.h :150; head BOTH_POSITION=ordinal 6 ⇒ 0x0006; espelho da
+   ponte SocketManagerModern a investigar), OU **pacote clássico de
+   movimento** (PACKET_MOVE :13094-:13095 ReceiveMoveCharacter /
+   PACKET_POSITION :13097-:13099 — structs PMOVE_CHARACTER :602-:620 etc.).
+   Fecha o ciclo spawn/delete/move do world tick.
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

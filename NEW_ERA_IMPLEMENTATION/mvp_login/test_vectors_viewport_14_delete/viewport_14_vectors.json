@@ -1,0 +1,12 @@
+{
+  "caso": "viewport_cycle_spawn_delete_0x14",
+  "frame12_c2_hex": "c2004f120201000a1403000102030405060708090a0b0c0d0e0f104865726f4100000000000b15130002001e2801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4865726f4200000000001f2920025566",
+  "frame13_c2_hex": "c2001d1302010100110a140b151001aa020200221e281f292003010203",
+  "delete14_hex": "c10a1403010001019999",
+  "delete14_trunc_hex": "c10a14030100010199",
+  "expected_final_keys": [ 512, 514 ],
+  "expected_counts": { "characters": 1, "monsters": 1 },
+  "expected_removed": [ 256, 257 ],
+  "ignored_key_raw": "0x9999->0x1999 (b15 mask :2817; inexistente)",
+  "trunc": { "applied": false, "error": "0x14: tamanho C1 inconsistente (size != total; got 9 B)", "state_unchanged": true }
+}

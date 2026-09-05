@@ -1184,3 +1184,57 @@ bool ApplyFrame_C2_13_Monsters(const std::vector<uint8_t>& frame,
 }
 
 } } // namespace newera::mvp (bloco 1.3-H)
+
+// (bloco 1.3-I dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-I — VIEWPORT DELETE — HeadCode 0x14 ReceiveDeleteCharacterViewport —
+// wire-real per spec 1.3-I (NEW_ERA_PROTOCOL_MVP_VIEWPORT_DELETE_SPEC.md).
+// EVIDÊNCIA: dispatch :13116-:13119 ("delete characters & monsters" — serve
+// chars E monsters); handler :2793-:2848. Framing **C1** (ÚNICO do ciclo em
+// C1): cast LPPHEADER_DEFAULT (:2795) sobre PHEADER_DEFAULT{PBMSG_HEADER
+// {Code;Size;HeadCode}; BYTE Value} (WSclient.h :113-:118; PBMSG 3 B
+// :76-:81) => [C1][size][0x14][count]. Entidade = PDELETE_CHARACTER
+// (H :622-:626) = KeyH/KeyL 2 B; Key=(KeyH<<8)+KeyL BE :2814; DeleteFlag=b15
+// :2815 é DEAD READ (lido e nunca usado); Key&=0x7FFF :2817 ->
+// DeleteCharacter(Key) :2839 (tolerante a key inexistente). STRIDE FIXO 2
+// (:2846). Min frame 6 B. UnRegisterBuff :2832-:2837 antes de deletar.
+
+// S->C: extrai a lista de keys a remover (BE &0x7FFF), bounds estrito.
+bool ParseViewportDeletePlain_C1(const std::vector<uint8_t>& frame,
+                                 std::vector<uint16_t>& outKeys, std::string& err) {
+    outKeys.clear();
+    if (frame.size() < 4 || frame[1] != frame.size()) {
+        err = "0x14: tamanho C1 inconsistente (size != total; got " +
+              std::to_string(frame.size()) + " B)";
+        return false;
+    }
+    if (frame[0] != 0xC1) { err = "0x14: espera C1 (PHEADER_DEFAULT :113-:118)"; return false; }
+    if (frame[2] != 0x14) { err = "0x14: head invalido"; return false; }
+    const size_t count = frame[3];                              // Value :117/:2797
+    if (4 + 2 * count != frame.size()) {                        // stride FIXO 2 :2846
+        err = "0x14: count=" + std::to_string(count) + " incompativel com size " +
+              std::to_string(frame.size()) + " (espera 4+2*" + std::to_string(count) +
+              " B)";
+        return false;
+    }
+    outKeys.reserve(count);
+    for (size_t i = 0; i < count; ++i) {
+        const uint16_t keyRaw = (uint16_t)(((uint16_t)frame[4 + 2 * i] << 8) |
+                                           frame[5 + 2 * i]);    // BE :2814
+        outKeys.push_back(keyRaw & 0x7FFF);                      // máscara :2817
+    }
+    return true;
+}
+
+// S->C: remove keys do WorldState (parse local; apply só se OK; erase tolerante).
+bool ApplyFrame_DeleteEntities_C1(const std::vector<uint8_t>& frame,
+                                  WorldState& ws, std::string& err) {
+    std::vector<uint16_t> keys;                                  // vetor LOCAL
+    if (!ParseViewportDeletePlain_C1(frame, keys, err)) return false;
+    for (uint16_t k : keys) ws.entities.erase(k);                // ignora ausentes
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-I)
