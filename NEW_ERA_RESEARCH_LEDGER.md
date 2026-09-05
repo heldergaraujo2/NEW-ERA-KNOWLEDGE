@@ -1087,3 +1087,16 @@ FIM DO LEDGER — documento vivo; adicionar, nunca apagar.
 - **Golden** (`test_vectors_skill_db/`): generate_skill_db_vectors.cpp 8.584 B/166 L (**TWO-TU** espelho ODR + prototypes) · skill_db_vectors.json **685 B sha 8626d77e56dcb64f8430f3eb74a6227602ef11bf9856bd85e7378a37517f72e0** · skill_db_vectors.md **672 B sha b213c99ec6a4e7ee99d62129ef27aa09aad09126be93d6cdc4f81ce0b2514749** · compile_and_run.sh 545 B. **Loopback** (`loopback_skill_db/`): embedded_vectors.h 1.267 B/31 L sha a0f711cd8e8d21361c046052bf8b16c134f888a2d1c05c3ec1cc9c3c2dd132fc (sha do json no topo; kReq/kRespDamage + expected) · loopback_harness.cpp 8.902 B/194 L sha 9adfa89987b6178f133ebe03ce2799a03d008f5497b7dd20c2e96c8fbff6d7fe (two-TU; troca RAW 12 B→10 B; server memcmp c/ offset-diag) · compile_and_run.sh 603 B sha 45c0a241126c58fbb374c40a4dda6352630f56ec09def8225c4c7d29524f0b8c.
 - **Binários REMOVIDOS**: genvec_skill_db 824.152 B sha 56556e84… · loopback_harness 1.052.184 B sha e7a8d4cc… (liberados 1.876.336 B; workspace 11.927.860 B c/ .git).
 - Nota: localhost only; EVIDENCE intacta; nenhum .dat/binário versionado. **1.3-P — A ESCOLHER pelo usuário** (pendências de arquivo: C4 RX/≥701 DES do TODO global; PacketManager seeding §15 item 2; ack/anim viewport 0x18/0x19 RX family; fechamento documental da FASE 1).
+
+## 80. FASE 1 — 1.3-P + 1.3-Q: Skill TX 0xDB (pipeline on-wire) + GS dispatch (LANG=1) CONFIRMADOS
+
+- 1.3-P (client TX pipeline):
+  - `SendPacket(buf,len,bEncrypt,...)` efetivo com `NEW_PROTOCOL_SYSTEM` faz early-return via `gProtocolSend.SendPacketClassic(buf,len)` ⇒ gameplay sai **C1 plain on-wire** e `bEncrypt` (ex.: `spe.Send(TRUE)`) é **ignorado** no path ativo pós-scene.
+  - `MakeSkillSerialNumber`: contador cíclico **1..50** (wrap 50→1).
+- 1.3-Q (GS RX / dispatch):
+  - `GAMESERVER_LANGUAGE==1`: `PROTOCOL_CODE4 == 0xDB` e `case PROTOCOL_CODE4 -> CGMultiSkillAttackRecv`.
+  - Hipótese “0xDB→0x19” **REFUTADA**: `case 0x19 -> CGSkillAttackRecv` é head legacy hardcoded coexistente, não tradução do 0xDB.
+  - Modern GS tem cases dedicados: `BOTH_ATTACK1 -> CGAttackRecv`, `BOTH_ATTACK2 -> CGMultiSkillAttackRecv`, além do túnel `BOTH_MESSAGE`.
+
+Próximo microteste sugerido: **1.3-R** — evidenciar formato/body de `BOTH_ATTACK1` e `BOTH_ATTACK2` (olc), para habilitar TX moderno sem túnel 0x000C (ou decidir manter ambos).
+

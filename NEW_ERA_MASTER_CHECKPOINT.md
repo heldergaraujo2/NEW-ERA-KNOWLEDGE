@@ -239,3 +239,8 @@ cliente/servidor, header.size u32 sem teto, little-endiano, buffers static, leak
   HYPOTHESIS/PENDING).
 - De processo: §15 itens 1-8 (pendências técnicas + auditoria formal);
   §18 (lacunas de recuperação); §19 (regras de integridade do documento vivo).
+
+---
+
+## FASE 1 (recriação) — STATUS
+FASE 1 (recriação) — 1.3-O/1.3-P/1.3-Q fechados: attack TX 0x11 + skill TX 0xDB + damage RX 0x11; pipeline: gameplay C1 plain (NEW_PROTOCOL_SYSTEM); GS LANG=1 PROTOCOL_CODE4=0xDB; próxima: 1.3-R (BOTH_ATTACK1/2 bodies).
