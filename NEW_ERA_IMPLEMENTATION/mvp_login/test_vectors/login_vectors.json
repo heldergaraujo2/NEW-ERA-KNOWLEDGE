@@ -1,0 +1,20 @@
+{
+  "gerado": "1.0-F (deterministico, sem rede/sockets/RNG)",
+  "casos": {
+    "T1_login_request": {
+      "inputs": { "id": "111", "pass": "111", "tick": "0x11223344",
+        "version_raw": [1,2,3,4,5], "serial16": "000102030405060708090a0b0c0d0e0f", "serialPkt": 1 },
+      "plain49_hex": "c131f179084441ce2221235ab819ed4e5e69c5e3f547c764e361aa381140a8fe19744fc47bcd572206a651edaffeca991c",
+      "inner48_hex": "01f179084441ce2221235ab819ed4e5e69c5e3f547c764e361aa381140a8fe19744fc47bcd572206a651edaffeca991c",
+      "c3_68B_hex": "c34497132826c5c6078560a590bc357b7d1dc06218b8c9fc510320971ce2e13435704506156c4258e03160c42015b0c059394505e34a15f7c2ddaa378f8e56e2a130c9fc",
+      "roundtrip": "decrypt_derivedDec1(c3)==inner48 OK" },
+    "R1_join_handshake_sim_streamxor": {
+      "frame12_pre_xor_hex": "c10cf1000112340000000000",
+      "c3_24B_hex": "c318dae70ace5a8ae385cc083d2f9b7d21c7bba1d4f84678",
+      "parsed": { "head": "0xF1", "sub": "0x00", "result": 1, "heroKey": "0x1234", "versionOk": true, "serial": 1 } },
+    "R2_login_result_gs_style_noxor": {
+      "inner4_hex": "02f10101",
+      "c3_13B_hex": "c30de1dc358a007e647c89320b",
+      "parsed": { "head": "0xF1", "sub": "0x01", "value": 1, "serial": 2 } }
+  }
+}

@@ -1,0 +1,436 @@
+// NEW-ERA — MVP LOGIN — mvp_login_client.cpp
+// Fluxo 0xF1 conforme NEW_ERA_PROTOCOL_MVP_LOGIN_SPEC.md (sha e583db6b…).
+// 1.0-A: skeleton. 1.0-B: BuildC1_F1_01_LoginRequestPlain (C1 plain, pré-SimpleModulus).
+// SEM SOCKETS; envelope C3/SimpleModulus ficam para 1.0-C.
+#include "packet_headers.h"
+#include "crypto_buxconvert.h"
+#include "crypto_xordata32.h"
+#include "crypto_cpacketmanager_stub.h"
+#include "crypto_cpacketmanager_min.h"
+
+#include <stdint.h>
+#include <stddef.h>
+#include <array>
+#include <cstring>
+#include <vector>
+#include <string>
+
+namespace newera {
+namespace mvp {
+
+using namespace newera::proto;  // LOGIN_ID_SIZE / LOGIN_PASS_SIZE / PROTO_*_SIZE (packet_headers.h)
+
+// ---------------------------------------------------------------------------
+// Pacote 2 (C→S): payload lógico C1 plain do login F1:01 — spec §4.2 (49 B)
+//
+// Layout (bytes):
+//   [0] 0xC1  [1] Size=49  [2] 0xF1  [3] 0x01
+//   [4..13]  ID[10]   (BuxConvert XOR3, zero-pad)     — §3.1/§41
+//   [14..23] PASS[10] (BuxConvert XOR3, zero-pad)
+//   [24..27] Tick uint32 LE (cru)
+//   [28..32] VerEnc[5] = rawVer[i] - (i+1)            — spec §3/§4.2
+//   [33..48] Serial[16] (cru)
+// Depois: XorData32 encadeado em [3..49) (header [0..2] intacto) — §3.2/§43.
+//
+// Observação de fidelidade (sem efeito aqui): no legado, CStreamPacketEngine
+// só patcheia o byte de size em End() (:47-64) e spe.Send NÃO chama End()
+// (:120-123) — o size interno pode ficar vestigial dentro do envelope C3.
+// NEW-ERA grava Size=49 conforme a spec §4.2 (o tamanho real viaja no C3).
+std::array<uint8_t, 49> BuildC1_F1_01_LoginRequestPlain(const char* id,
+                                                        const char* password,
+                                                        uint32_t tick,
+                                                        const uint8_t rawVer[5],
+                                                        const uint8_t serial[16]) {
+    std::array<uint8_t, 49> p{};
+
+    p[0] = 0xC1;
+    p[1] = 49;
+    p[2] = 0xF1;
+    p[3] = 0x01;
+
+    // ID/PASS: cópias locais zero-padded, depois BuxConvert (§3.1)
+    uint8_t idb[LOGIN_ID_SIZE] = { 0 };
+    uint8_t pwb[LOGIN_PASS_SIZE] = { 0 };
+    for (size_t i = 0; i < LOGIN_ID_SIZE && id && id[i]; ++i)   idb[i] = static_cast<uint8_t>(id[i]);
+    for (size_t i = 0; i < LOGIN_PASS_SIZE && password && password[i]; ++i) pwb[i] = static_cast<uint8_t>(password[i]);
+    crypto::BuxConvert(idb, sizeof(idb));
+    crypto::BuxConvert(pwb, sizeof(pwb));
+    std::memcpy(&p[4], idb, LOGIN_ID_SIZE);        // [4..13]
+    std::memcpy(&p[14], pwb, LOGIN_PASS_SIZE);     // [14..23]
+
+    // Tick: uint32 LE cru — spec §4.2
+    std::memcpy(&p[24], &tick, sizeof(tick));      // [24..27]
+
+    // VerEnc: rawVer[i] - (i+1) — spec §3/§4.2
+    for (size_t i = 0; i < PROTO_VERSION_SIZE; ++i) {
+        p[28 + i] = static_cast<uint8_t>(rawVer[i] - static_cast<uint8_t>(i + 1));
+    }
+
+    // Serial[16] cru — spec §4.2
+    std::memcpy(&p[33], serial, PROTO_SERIAL_SIZE); // [33..48]
+
+    // XorData32 encadeado sobre [3..49) (header [0..2] sem XOR) — §3.2/§43
+    crypto::ApplyStreamXorLikeEvidence(p.data());
+
+    static_assert(49 == 4 + LOGIN_ID_SIZE + LOGIN_PASS_SIZE + 4 + PROTO_VERSION_SIZE + PROTO_SERIAL_SIZE,
+                  "layout F1:01 deve ter 49 bytes");
+    return p;
+}
+
+// 1.0-D: carrega as chaves reais do login (Enc1.dat isolado em keys/).
+// NÃO usa dummy keys: sem arquivo => falha explícita (NEWERA_ALLOW_DUMMY_KEYS
+// compile-time flag existe só para experimentos — default OFF; ver crypto_cpacketmanager_min.h).
+bool TryLoadLoginKeys(crypto::PacketCryptoSM& sm, std::string& err) {
+    const char* kPath = "NEW_ERA_IMPLEMENTATION/mvp_login/keys/Enc1.dat";
+    if (!sm.LoadKeysFromFile(kPath, &err)) {
+        err = std::string("TryLoadLoginKeys: ") + err + " (path: " + kPath + ")";
+        return false;
+    }
+    return true;
+}
+
+// ---------------------------------------------------------------------------
+// Wrap C3 (1.0-C): transforma o plain 49 B em pacote real de saída.
+// EVIDÊNCIA da ordem/bytes cifrado (wsclientinline.h SendPacket :88-:126):
+//   :92  iSkip = (C1) ? 2 : 3
+//   :94  byBuffer[iSkip-1] = g_byPacketSerialSend++   -> serial SUBSTITUI o byte[1]
+//   :100 Encrypt(NULL, byBuffer+iSkip(--), len-iSkip) -> cifra [1..len) = serial+head+sub+payload
+//   :106/:112 envelope [0xC3][2+ctlen][ct...]          -> byte[0] (0xC1) é DESCARTADO
+// Serial: estado local incremental (spec §3.3). Chaves: injetadas (1.0-D carrega Enc1/Dec2).
+// Retorna {} em erro. Sem sockets.
+std::vector<uint8_t> BuildC3_F1_01_LoginRequestEncrypted(const char* id, const char* password,
+                                                        uint32_t tick, const uint8_t version[5],
+                                                        const uint8_t serial[16],
+                                                        crypto::PacketCryptoSM& sm,
+                                                        std::string* err = nullptr) {
+    if (!sm.KeysLoaded()) {   // 1.0-D: sem chaves reais => erro claro, sem cifrar "no escuro"
+        if (err) *err = "chaves nao carregadas: chame TryLoadLoginKeys(sm,err) antes (Enc1.dat)";
+        return {};
+    }
+    auto plain = BuildC1_F1_01_LoginRequestPlain(id, password, tick, version, serial);
+
+    static_assert(4 + LOGIN_ID_SIZE + LOGIN_PASS_SIZE + 4 + PROTO_VERSION_SIZE + PROTO_SERIAL_SIZE == 49,
+                  "plain deve ter 49 bytes");
+    static_assert(((6 + 24) * 2) + 6 == 66, "48 B -> 6 blocos -> 66 B de ciphertext");
+    static_assert(2 + 66 < 256, "login cifrado deve permanecer C3 (<256 B)");
+
+    uint8_t inner[48];                                 // serial + [2..49) do plain
+    static uint8_t s_serialByte = 0;                   // estado incremental local
+    inner[0] = ++s_serialByte;
+    std::memcpy(&inner[1], plain.data() + 2, 47);
+
+    uint8_t ct[66];
+    int ctlen = sm.Encrypt(ct, inner, static_cast<int>(sizeof(inner)));
+    if (ctlen != 66) {                                  // 48 B -> 66 B (evidência :242-:244)
+        if (err) *err = "Encrypt falhou (ctlen=" + std::to_string(ctlen) + "; chaves carregadas?)";
+        return {};
+    }
+
+    std::vector<uint8_t> out;
+    out.reserve(2 + 66);
+    out.push_back(0xC3);
+    out.push_back(static_cast<uint8_t>(2 + 66));
+    out.insert(out.end(), ct, ct + 66);
+    return out;
+}
+
+// Resultado do handshake F1:00 (spec §4.1) — declarado antes do RX (uso em ParsedMvp)
+struct JoinServerResult {
+    bool    ok;            // header válido
+    uint8_t result;        // [4] 0x01 = SUCCESS
+    uint16_t heroKey;      // (NumberH<<8)+NumberL
+    uint8_t version[5];    // [7..11]
+};
+
+// ---------------------------------------------------------------------------
+// RX (1.0-E) — espelha a remontagem evidenciada no GS (SocketManager.cpp
+// :301-:326) e o unXor do CPacketManager (ExtractPacket :542-:570 chama
+// XorData(size-1, 2) :572-:583 — iteração REVERSA n>2).
+// Chaves de RX do cliente = Dec2.dat (type=1); TX usa Enc1.dat (type=0).
+bool TryLoadReceiveKeys(crypto::PacketCryptoSM& sm, std::string& err) {
+    const char* kPath = "NEW_ERA_IMPLEMENTATION/mvp_login/keys/Dec2.dat";
+    if (!sm.LoadKeysFromFile(kPath, &err, /*type=*/1)) {
+        err = std::string("TryLoadReceiveKeys: ") + err + " (path: " + kPath + ")";
+        return false;
+    }
+    return true;
+}
+
+// UnXor do stream: inverso do TX — para n = size-1 down to 3 (n>2):
+//   buf[n] ^= buf[n-1] ^ filter[n%32]     (CPacketManager::XorData :579-:581)
+inline void UnXorStreamLikeEvidence(uint8_t* buf, size_t size) {
+    if (size < 4) return;
+    for (size_t n = size - 1; n > 2; --n) {
+        buf[n] ^= static_cast<uint8_t>(buf[n - 1] ^ crypto::kXorFilter32[n % 32]);
+    }
+}
+
+// Envelope C3: [0xC3][len][ct...] — ct = cifra de (serial+head+sub+campos).
+// EVIDÊNCIA: serial está DENTRO do ciphertext (1º byte do plain) — GS
+// SocketManager.cpp :301/:303 (DecSerial = DecBuff[1] pós-Decrypt) e cliente
+// WSclient.cpp :11686/:11703 (byDec[2]). Logo ParseC3Packet só valida o
+// envelope e extrai o ct; outSerial é preenchido pelo caller após decrypt.
+bool ParseC3Packet(const std::vector<uint8_t>& pkt, uint8_t& outSerial,
+                   std::vector<uint8_t>& outCipher, std::string& err) {
+    outSerial = 0; outCipher.clear();
+    if (pkt.size() < 3 || pkt[0] != 0xC3) { err = "nao e C3"; return false; }
+    uint8_t len = pkt[1];
+    if (len != pkt.size() || len < 3) { err = "tamanho C3 inconsistente"; return false; }
+    outCipher.assign(pkt.begin() + 2, pkt.end());
+    return true;
+}
+
+// Serial esperado (sequência por conexão). EVIDÊNCIA do comportamento em
+// mismatch: cliente WSclient.cpp :11703-:11708 — NÃO derruba; faz resync
+// (expected = recebido) e loga. Incremento após sucesso: HIPÓTESE menor
+// (par do g_byPacketSerialSend++ TX :94; caminho RX normal não capturado).
+static uint8_t g_expectedRecvSerial = 0;
+inline bool CheckRecvSerial(uint8_t serial, std::string& err) {
+    if (serial != g_expectedRecvSerial) {
+        err += "serial mismatch (resync " + std::to_string(g_expectedRecvSerial) +
+               "->" + std::to_string(serial) + ") ";
+        g_expectedRecvSerial = serial;   // resync (evidência :11706)
+        return true;                     // não-fatal, como no legado
+    }
+    return true;
+}
+inline void AdvanceRecvSerial() { ++g_expectedRecvSerial; }
+
+// Resultado alto nível do RX do MVP
+struct ParsedMvp {
+    bool     encrypted = false;   // veio como C3
+    uint8_t  serial = 0;
+    uint8_t  head = 0, sub = 0;
+    bool     isJoin = false;      // F1:00
+    JoinServerResult join{};
+    bool     isLoginResult = false; // F1:01
+    int      loginValue = -1;
+    bool     versionOk = true;    // F1:00: regra Version[i]-(i+1)
+};
+
+// Pipeline RX: detecta C1/C3, decifra (Dec2), checa serial, unXora e parseia
+// F1:00/F1:01. Outros heads/subs: retorna true com "nao suportado no MVP".
+bool DecodeAndParseMvpPacket(const std::vector<uint8_t>& pkt,
+                             crypto::PacketCryptoSM& rxSm,
+                             const uint8_t clientVersion[5],
+                             ParsedMvp& out, std::string& err,
+                             bool streamXored = true) {
+    if (pkt.empty()) { err = "pacote vazio"; return false; }
+    std::vector<uint8_t> frame;    // pacote C1 reconstruído
+
+    if (pkt[0] == 0xC3) {
+        out.encrypted = true;
+        uint8_t serial; std::vector<uint8_t> ct;
+        if (!ParseC3Packet(pkt, serial, ct, err)) return false;
+        if (!rxSm.KeysLoaded()) { err = "chaves RX nao carregadas (Dec2.dat)"; return false; }
+        std::vector<uint8_t> plain((ct.size() / 11) * 8 + 8);
+        int plainLen = rxSm.Decrypt(plain.data(), ct.data(), static_cast<int>(ct.size()));
+        if (plainLen <= 0) { err = "Decrypt falhou (checksum)"; return false; }
+        // Remontagem C1 fiel ao GS (:303-:309): plain = [serial][head][sub][campos]
+        //   DecSerial = plain[0]; frame = [0xC1][plainLen+1][head][sub][campos]
+        out.serial = plain[0];
+        CheckRecvSerial(out.serial, err);              // resync não-fatal (:11703-:11708)
+        AdvanceRecvSerial();
+        frame.assign(static_cast<size_t>(plainLen) + 1, 0);
+        frame[0] = 0xC1;
+        frame[1] = static_cast<uint8_t>(plainLen + 1);              // size reconstruído (=49 no login)
+        std::memcpy(frame.data() + 2, plain.data() + 1, static_cast<size_t>(plainLen - 1));
+        if (streamXored) {                              // Xor é artefato do BUILDER do cliente
+            UnXorStreamLikeEvidence(frame.data(), frame.size());  // (AddData :82-:94); GS TX cifra
+        }                                               // SEM Xor (DataSend :443-:470) ⇒ flag.
+    } else if (pkt[0] == 0xC1) {
+        frame = pkt;
+    } else {
+        err = "framing nao suportado (esperado C1/C3)";
+        return false;
+    }
+
+    if (frame.size() < 5 || frame[1] != frame.size()) { err = "tamanho C1 inconsistente"; return false; }
+    out.head = frame[2]; out.sub = frame[3];
+
+    if (out.head == 0xF1 && out.sub == 0x00) {         // handshake — spec §4.1
+        if (frame.size() < 12) { err = "F1:00 curto (<12)"; return false; }
+        out.isJoin = true;
+        out.join.ok = true;
+        out.join.result = frame[4];
+        out.join.heroKey = static_cast<uint16_t>((frame[5] << 8) | frame[6]);
+        std::memcpy(out.join.version, &frame[7], 5);
+        out.versionOk = true;
+        for (size_t i = 0; i < 5; ++i) {               // regra Version[i]-(i+1) (WSclient.cpp :437)
+            if (static_cast<uint8_t>(clientVersion[i] - static_cast<uint8_t>(i + 1)) != out.join.version[i]) {
+                out.versionOk = false; break;
+            }
+        }
+        return true;
+    }
+    if (out.head == 0xF1 && out.sub == 0x01) {         // login result — spec §4.3/§6
+        out.isLoginResult = true;
+        out.loginValue = frame[4];
+        return true;                                    // bytes >=5 ignorados (evidência :12835)
+    }
+    err += "head/sub nao suportado no MVP ( ";
+    err += std::to_string(static_cast<int>(out.head)) + ":" + std::to_string(static_cast<int>(out.sub)) + " ) ";
+    return true;                                        // sem falhar (comando 1.0-E D5)
+}
+
+
+JoinServerResult build_F1_00_receive_join_parser(const uint8_t* /*buffer*/, size_t /*len*/) {
+    // TODO(1.0-C+): implementar parse (spec §4.1) + check Version[i]-(i+1).
+    return JoinServerResult{};
+}
+
+// ---------------------------------------------------------------------------
+// Encadeamento do builder (mantém assinatura do skeleton 1.0-A).
+// Retorna bytes gravados em out (49) ou <0 em erro. serial_byte: TODO(1.0-C).
+int build_F1_01_login_request_packet(uint8_t* out, size_t cap,
+                                     const char* id, const char* password,
+                                     uint32_t tick, const uint8_t version[5],
+                                     const uint8_t serial[16],
+                                     uint8_t& serial_byte) {
+    if (!out || cap < 49 || !id || !password || !version || !serial) return -1;
+    auto pkt = BuildC1_F1_01_LoginRequestPlain(id, password, tick, version, serial);
+    std::memcpy(out, pkt.data(), pkt.size());
+    serial_byte = 0; // TODO(1.0-C): serial por pacote entra no envelope C3 (spec §3.3)
+    return static_cast<int>(pkt.size());
+}
+
+// ---------------------------------------------------------------------------
+// Pacote 3 (S→C): parser do login result C1 0xF1:0x01 (>=5 B) — spec §4.3/§6
+int parse_F1_01_login_result(const uint8_t* /*buffer*/, size_t /*len*/) {
+    // TODO(1.0-C+): validar header; extrair Value; mapear pela tabela §6.
+    return -1; // NOT IMPLEMENTED
+}
+
+} // namespace mvp
+} // namespace newera
+
+#ifndef NEWERA_MVP_NO_MAIN   // 1.0-F: guard p/ compilar o gerador de test-vectors sobre este TU
+int main() {
+    // 1.0-B: nenhum driver de execução — apenas build/parse (syntax-checked).
+    return 0;
+}
+#endif
+
+// (bloco 1.1-B dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.1-B — F3:0x00 CHARACTER LIST (spec: NEW_ERA_PROTOCOL_MVP_F3_COMMON_SPEC.md)
+// EVIDÊNCIA server-side (request SEM payload): GS_Protocol.cpp :955-:960 —
+//   case 0xF3: switch(lpMsg[3]) { case 0x00: CGCharacterListRecv(aIndex); }
+//   (lpMsg NÃO é lido => request = [C1][04][F3][00]).
+// EVIDÊNCIA client-side (layout do response): WSclient.cpp :523-:600 —
+//   ReceiveCharacterList: cast :527; Offset=sizeof(hdr) :529; count=Data->Value
+//   :532/:537; slot PRECEIVE_CHARACTER_LIST :539/:574; campos usados :541-:573;
+//   switch(Index) 0..4 com default:return :545-:561.
+
+// C->S: request plain 4 B + XOR32 no range [3..size) (padrão §3.2/§43 do login).
+// Esta função é o equivalente NEW-ERA do padrão Init(C1,F3)<<0x00; Send(TRUE)
+// do legado. Resultado: [C1][04][F3][0x7A] — subcode 0x00 vira
+// 0x00 ^ head(0xF3) ^ Filter[3](0x89) = 0x7A.
+std::vector<uint8_t> BuildC1_F3_00_RequestCharListPlain() {
+    std::vector<uint8_t> p = { 0xC1, 0x04, 0xF3, 0x00 };
+    crypto::XorData32(p.data(), 3, p.size());
+    return p;
+}
+
+// C->S: wrap C3 — MESMO pipeline do login (1.0-C): inner = serial + [2..4) do
+// plain, cifrado com Enc1 (bloco parcial 3 B zero-padded — HIPÓTESE 1.0-D;
+// 1.1-C golden exercitará de verdade). Esperado: C3 de 13 B (2 header + 11 ct).
+// NOTA (serial): no legado há UM contador por conexão (g_byPacketSerialSend,
+// wsclientinline.h :94); no MVP cada builder mantém estado próprio (1ª chamada
+// = 0x01 em ambos, como nos golden 1.0-F).
+std::vector<uint8_t> BuildC3_F3_00_RequestCharListEncrypted(std::string* err = nullptr) {
+    crypto::PacketCryptoSM sm;
+    std::string lerr;
+    if (!TryLoadLoginKeys(sm, lerr)) {          // Enc1.dat (1.0-D)
+        if (err) *err = lerr;
+        return {};
+    }
+    static_assert(((1 + 4) * 2) + 1 == 11, "3 B -> 1 bloco parcial -> 11 B ct");
+    static_assert(2 + 11 < 256, "F3:00 cifrado deve permanecer C3 (<256 B)");
+
+    auto plain = BuildC1_F3_00_RequestCharListPlain();
+    uint8_t inner[3];
+    static uint8_t s_serialByte = 0;            // incremental local (1ª = 0x01)
+    inner[0] = ++s_serialByte;
+    inner[1] = plain[2];                        // 0xF3
+    inner[2] = plain[3];                        // subcode xor'd (0x7A)
+
+    uint8_t ct[11];
+    int ctlen = sm.Encrypt(ct, inner, static_cast<int>(sizeof(inner)));
+    if (ctlen != 11) {
+        if (err) *err = "Encrypt falhou (ctlen=" + std::to_string(ctlen) + ")";
+        return {};
+    }
+    std::vector<uint8_t> out;
+    out.reserve(13);
+    out.push_back(0xC3);
+    out.push_back(13);
+    out.insert(out.end(), ct, ct + 11);
+    return out;
+}
+
+// S->C: parser do response (recebe o C1 plain JÁ decodificado — decrypt+serial
+// de nível acima via DecodeAndParseMvpPacket com streamXored=FALSE: o GS cifra
+// SEM XorData no TX — DataSend :443-:470, como o R2 do login).
+// Structs SEMANTICAS (parse campo-a-campo via memcpy; #pragma pack(1) N/A pois
+// não há overlay de memória — menos mágica, zero risco de alignment).
+struct F3CharListHeader {   // = PHEADER_DEFAULT_CHARACTER_LIST (WSclient.h :137-:146)
+    uint8_t subCode;        // c1[3]
+    uint8_t maxClass;       // c1[4]
+    uint8_t moveCount;      // c1[5]
+    uint8_t count;          // c1[6] — campo "Value", usado como Count (:532/:537)
+};
+
+struct F3CharListEntry {    // = PRECEIVE_CHARACTER_LIST (WSclient.h :355-:364)
+    uint8_t  index;         // :357 — switch 0..4 (:545); >4 => legado aborta (:560)
+    char     id[11];        // :358 ID[MAX_ID_SIZE=10] + NUL (:568-:569)
+    uint16_t level;         // :359 WORD (LE)
+    uint8_t  ctlCode;       // :566
+    uint8_t  serverClass;   // :361 — conversão p/ classe cliente é fora do parser (:541)
+    uint16_t equipmentOffset; // :362 Equipment[EQUIPMENT_LENGTH=17] — offset dentro de c1
+    uint8_t  guildStatus;   // :573 byGuildStatus
+};
+// Tamanhos PROVADOS por defines da evidência (não inferidos):
+//   MAX_ID_SIZE=10 (Define.h :4 e define.h :305) · EQUIPMENT_LENGTH=17 (WSclient.h :71)
+//   => slot = 1+10+2+1+1+17+1 = 33 B; header do response = 3 (C1) + 4 = 7 B.
+
+struct ParsedCharList {
+    F3CharListHeader hdr;
+    std::vector<F3CharListEntry> chars;
+};
+
+bool ParseC1_F3_00_CharacterListPlain(const std::vector<uint8_t>& c1,
+                                      ParsedCharList& out, std::string& err) {
+    if (c1.size() < 7) { err = "F3:00: C1 truncado (<7 B)"; return false; }
+    if (c1[0] != 0xC1) { err = "F3:00: espera C1"; return false; }
+    if (c1[2] != 0xF3 || c1[3] != 0x00) { err = "F3:00: head/sub invalidos"; return false; }
+    out.hdr = { c1[3], c1[4], c1[5], c1[6] };
+    out.chars.clear();
+    constexpr size_t kSlotSize = 1 + 10 + 2 + 1 + 1 + 17 + 1;   // 33 B (provado)
+    for (int i = 0; i < out.hdr.count; ++i) {                   // :537 (count=Value)
+        const size_t off = 7 + static_cast<size_t>(i) * kSlotSize;  // :529/:574
+        if (off + kSlotSize > c1.size()) {                      // bounds-check (NOVO)
+            err = "F3:00: slot " + std::to_string(i) + " fora do buffer";
+            return false;
+        }
+        F3CharListEntry e{};
+        e.index = c1[off];
+        if (e.index > 4) {  // legado: default:return (:560) — aborta o pacote
+            err = "F3:00: Index>4 — legado aborta aqui (:560 default:return)";
+            return false;
+        }
+        std::memcpy(e.id, &c1[off + 1], 10);                    // :568
+        e.id[10] = '\0';                                        // :569
+        std::memcpy(&e.level, &c1[off + 11], 2);                // :359 WORD LE
+        e.ctlCode     = c1[off + 13];                           // :566
+        e.serverClass = c1[off + 14];                           // :361
+        e.equipmentOffset = static_cast<uint16_t>(off + 15);    // 17 B (:362/:71)
+        e.guildStatus = c1[off + 32];                           // :573
+        out.chars.push_back(e);
+    }
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.1-B)

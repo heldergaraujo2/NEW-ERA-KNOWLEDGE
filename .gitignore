@@ -1,0 +1,9 @@
+muonline/
+NEW_ERA_EVIDENCE/
+NEW_ERA_IMPLEMENTATION/mvp_login/keys/*.dat
+**/genvec
+**/loopback_harness
+**/*.o
+**/*.obj
+**/*.exe
+**/a.out
