@@ -670,3 +670,49 @@ bool ParseC1_F3_52_MasterSkillResponsePlain(const std::vector<uint8_t>& c1,
 }
 
 } } // namespace newera::mvp (bloco 1.1-F)
+
+// (bloco 1.3-A dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-A — F3:0x06 ADD POINT — wire-real per spec 1.3-A
+// (NEW_ERA_PROTOCOL_MVP_F3_06_ADDPOINT_SPEC.md). EVIDÊNCIA: TX =
+// SendRequestAddPoint (wsclientinline :1189-:1195): Init(C1,F3)<<0x06<<(BYTE)
+// p_Type; Send() default FALSE (:120) => C1 PLAIN 5 B + Xor32 [3..5).
+// Response = PRECEIVE_ADD_POINT (WSclient.h :882-:890) 11 B; consumo
+// ReceiveAddPoint (:6200-:6230): Result nibble-packado (>>4 sucesso; &0xF
+// stat 0=STR/1=DEX/2=VIT/3=ENE/4=CHA); Max dual-use (LifeMax/ManaMax);
+// ShieldMax/SkillManaMax sempre em sucesso.
+
+// C->S: request WIRE REAL — [C1][05][F3][06][pointType] + Xor32 [3..5).
+std::vector<uint8_t> BuildC1_F3_06_AddPointRequestWire(uint8_t pointType) {
+    std::vector<uint8_t> p = { 0xC1, 0x05, 0xF3, 0x06, pointType };
+    crypto::XorData32(p.data(), 3, p.size());
+    return p;
+}
+
+// S->C: parser do response (C1 plain 11 B; wire-real per spec 1.3-A).
+struct ParsedAddPoint {
+    uint8_t  result;        // nibble-packado (:6203-:6206)
+    bool     ok;            // result>>4 != 0 (gasta LevelUpPoint :6205)
+    uint8_t  statId;        // result&0xF: 0=STR 1=DEX 2=VIT 3=ENE 4=CHA
+    uint16_t max;           // LifeMax (VIT :6216) / ManaMax (ENE :6220)
+    uint16_t shieldMax;     // :6227
+    uint16_t skillManaMax;  // :6226
+};
+
+bool ParseC1_F3_06_AddPointResponsePlain(const std::vector<uint8_t>& c1,
+                                         ParsedAddPoint& out, std::string& err) {
+    if (c1.size() < 11) { err = "F3:06: C1 truncado (<11 B)"; return false; }
+    if (c1[0] != 0xC1) { err = "F3:06: espera C1"; return false; }
+    if (c1[2] != 0xF3 || c1[3] != 0x06) { err = "F3:06: head/sub invalidos"; return false; }
+    out.result = c1[4];
+    out.ok       = (out.result >> 4) != 0;              // :6203/:6205
+    out.statId   = out.result & 0xF;                    // :6206
+    std::memcpy(&out.max,          &c1[5], 2);          // :359-style WORD LE
+    std::memcpy(&out.shieldMax,    &c1[7], 2);
+    std::memcpy(&out.skillManaMax, &c1[9], 2);
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-A)

@@ -366,10 +366,17 @@
   [C1][22][F3][02][ID10][Resident20] :310-:320; divergência struct×wire
   documentada); golden+loopback regenerados C1↔C1 sem crypto; builders
   antigos DEPRECATED. [LEDGER §63].
-- **1.2-A3 (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **wire-real fix
+- **1.2-A3 (2026-09-05)**: **wire-real fix
   F3:0x30 Option (C1 34 B) OK (exit 0×2)** — spec §6 WIRE-REAL adicionada;
   golden+loopback regenerados C1↔C1 sem crypto; builder C3 DEPRECATED.
   **Migração wire-real da família F3 COMPLETA (00/02/30/52).** [LEDGER §64].
+- **1.3-A (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **F3:0x06 AddPoint
+  completo, wire-real desde o nascimento (spec+impl+golden+loopback,
+  exit 0×2, C1)** — spec `NEW_ERA_PROTOCOL_MVP_F3_06_ADDPOINT_SPEC.md`
+  (REQ C1 5 B pointType :1189-:1195; RESP 11 B Result nibble-packado
+  :6203-:6227; call-site [NOT RECOVERED], correlação documentada);
+  parser {result, ok, statId, max dual-use, shieldMax, skillManaMax}.
+  Binários removidos. [LEDGER §65].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -380,11 +387,10 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-A — retomar novos subcodes F3 (ordem decidida pelo comandante no
-  comando anterior: F3:06 AddPoint primeiro)**: F3:06 req = 1 byte Type
-  (:1193) + resp PRECEIVE_ADD_POINT 11 B (:883-:890); depois F3:01 Create
-  (:298-:308, PRECEIVE_CREATE_CHARACTER 19 B); depois F3:03 JoinMap
-  (SendRequestJoinMapServer :322-:330 usa gProtocolSend — investigar).
+1. **1.3-B — F3:0x01 CreateCharacter** (próximo bloco funcional pós-login):
+  TX = SendRequestCreateCharacter :298-:308 (ID+Class+Skin — extrair);
+  RX = PRECEIVE_CREATE_CHARACTER 19 B (:376-:386, já mapeada §52). Mesmo
+  ciclo wire-real C1.
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

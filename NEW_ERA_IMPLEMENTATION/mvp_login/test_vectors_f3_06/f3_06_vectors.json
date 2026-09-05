@@ -1,0 +1,7 @@
+{
+  "caso": "F3_06_addpoint_wire_c1",
+  "req_c1_hex": "c105f37cc2",
+  "resp_c1_hex": "c10bf30612e803b80ba00f",
+  "expected_parse": { "result": 18, "success": true, "stat": 2,
+    "max": 1000, "shieldMax": 3000, "skillManaMax": 4000 }
+}
