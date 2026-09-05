@@ -312,7 +312,7 @@
   PMSG_*_RECV [NOT RECOVERED]; direcionalidade duplex documentada.
   **Escolha 1.1-B: 0x00 CHARACTER LIST** (1º pacote pós-login; request
   vazio; response 7 B + slots variáveis a extrair). [LEDGER §52].
-- **1.1-B (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **F3:0x00 CharList
+- **1.1-B (2026-09-05)**: **F3:0x00 CharList
   implementado (builder + parser), syntax-only OK** — em `mvp_login_client.cpp`
   (bloco 1.1-B): `BuildC1_F3_00_RequestCharListPlain` ([C1][04][F3][00] +
   Xor32 no subcode → 0x7A) · `BuildC3_F3_00_RequestCharListEncrypted` (Enc1,
@@ -321,15 +321,36 @@
   MAX_ID_SIZE=10/EQUIPMENT_LENGTH=17 defines; campos
   Index/ID[11]/Level(W)/CtlCode/Class/Equip[17]offset/GuildStatus;
   bounds-check; Index>4 aborta como :560). [LEDGER §54].
+- **1.1-C (2026-09-05)**: **golden+loopback
+  F3:0x00 OK (localhost, ambos exit 0)** — golden `test_vectors_f3_00/`
+  (REQ C3 13 B; RESP C3 57 B stub 1 slot "Hero1"/345 GS-style; bloco parcial
+  7 B exercitado/validado); loopback `loopback_f3_00/` (server matched REQ
+  golden; client parse count=1/name/level). Core: +`outPlainC1` param,
+  guard RX `<4` (bug latente: C1 de 4 B rejeitado), guard F1:01<5.
+  **Binários removidos pós-sucesso** (workspace ~4,6 MB). [LEDGER §57].
+- **1.1-D (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **F3:0x02 Delete
+  completo (spec+impl+golden+loopback, exit 0×2)** — spec
+  `NEW_ERA_PROTOCOL_MVP_F3_02_DELETE_SPEC.md` (request C1 25 B
+  ID[10]+Resident[10] :389-:395; response 5 B result 1/0/3/2 :675-:693);
+  builder C3 35 B (3 blocos cheios) + parser result; golden
+  `test_vectors_f3_02/` + loopback `loopback_f3_02/` (server memcmp match;
+  client result=1 SUCCESS). **Binários removidos** (workspace ~4,6 MB).
+  [LEDGER §58].
+- **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
+  `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
+  clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
+  metadados) · `scripts/fetch_raw_and_verify.sh` (fetch raw@commit + verificação
+  sha256). Repo NEW-ERA-KNOWLEDGE sincronizado via deploy key. [LEDGER §59].
 - Microtestes POSTERIORES ao Ledger (alegados: 0C.4-J e séries 0D.1-A..G / 0E.1-A..I):
   **N/A — chat-only, não recuperáveis no workspace** (inventário: nenhum arquivo
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.1-C — golden vectors + loopback stub para F3:00**: gerar golden
-  (request C3 13 B determinístico + response C1 7+33N sintético marcado como
-  STUB) → loopback (server stub manda char-list, client parseia; client manda
-  F3:00, server confere vs golden) → **remover binário ao final** (budget).
+1. **1.1-E — próximo subcode F3 comum (escolha: 0x30 OPTION ou 0x52
+  MASTER-SKILL)** — recomendação: **0x30** (struct 34 B completa no
+  WSclient.h :1205-:1215; handler RX ReceiveOption :9388; TX CGOptionDataRecv
+  :991 — par simétrico com payload). Mesmo ciclo: spec → impl → golden →
+  loopback → prune.
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —
