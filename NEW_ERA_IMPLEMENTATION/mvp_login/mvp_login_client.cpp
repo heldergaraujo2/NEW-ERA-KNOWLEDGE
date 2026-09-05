@@ -766,3 +766,93 @@ bool ParseC1_F3_01_CreateCharResponsePlain(const std::vector<uint8_t>& c1,
 }
 
 } } // namespace newera::mvp (bloco 1.3-B)
+
+// (bloco 1.3-C dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-C — JOIN GAME / JOIN MAP SERVER — wire-real per spec 1.3-C
+// (NEW_ERA_PROTOCOL_MVP_JOIN_GAME_SPEC.md). DOIS SISTEMAS:
+// TX = SendRequestJoinMapServer (wsclientinline :322-:330): copia ID[10] e
+// chama gProtocolSend.SendPacket(ProtocolHead::BOTH_CONNECT_JOIN_GAME,
+// nameBuf, 10) (ProtocolSend.h :145 -> DataSend) — sistema NOVO olc::net/ASIO,
+// SEM C1/XOR: frame = message_header{id:u16, size:u32} + body (ProtocolAsio.h
+// :33-:37; envio header->body :378-:390). Ponte no GS modern:
+// SocketManagerModern.cpp :122-:131 traduz BOTH_CONNECT_JOIN_GAME ->
+// PMSG_CHARACTER_INFO_RECV classico (header.set(0xF3,0x03), name<=10 B) ->
+// CGCharacterInfoRecv (:129).
+// RX = CLASSICO C1 F3:03: dispatch WSclient.cpp :12969-:12974 ->
+// ReceiveJoinMapServer (:871-:1000+; crypto check COMENTADO :873-:880; cast
+// direto :883) sobre PRECEIVE_JOIN_MAP_SERVER (WSclient.h :405-:452):
+// wire = tag C1 + struct pack(1) 65 B = 66 B (0x42). NAO ha byte de result
+// (dump puro de dados — diferente de F3:01/06).
+
+// enum class ProtocolHead : uint16_t (ProtocolSend.h :7-:26) =>
+// BOTH_CONNECT_JOIN_GAME = ordinal 11 (0..12)
+static constexpr uint16_t kProto_BOTH_CONNECT_JOIN_GAME = 0x000B;
+
+// C->S: frame olc::net [id:u16 LE][size:u32 LE][ID10] — 16 B, SEM crypto.
+std::vector<uint8_t> BuildAsio_BOTH_CONNECT_JOIN_GAME_Request(const std::string& id10) {
+    if (id10.size() > 10) return {};                    // bounds-check ID[10]
+    std::vector<uint8_t> p(16, 0);
+    const uint16_t id = kProto_BOTH_CONNECT_JOIN_GAME;  // 0x000B
+    const uint32_t sz = 10;                             // body = ID[10]
+    std::memcpy(&p[0], &id, 2);                         // little-endian (x86)
+    std::memcpy(&p[2], &sz, 4);                         // little-endian (x86)
+    for (size_t i = 0; i < id10.size(); ++i)            // ID[10] zero-padded
+        p[6 + i] = static_cast<uint8_t>(id10[i]);
+    return p;
+}
+
+// S->C: parser do response (C1 plain 66 B = PRECEIVE_JOIN_MAP_SERVER).
+// Wire offsets: 4=X 5=Y 6=Map 7=Angle | 8..15=Exp 8xB MSB-first (:886-:938)
+// 16..23=NextExp 8xB MSB-first | 24=LevelUpPoint(W) 26..49=12 stats(W) na
+// ordem do struct (Str,Dex,Vit,Ene,Life,LifeMax,Mana,ManaMax,Shield,
+// ShieldMax,SkillMana,SkillManaMax) | 50=Gold(DW) :964 | 54=PK :988
+// 55=CtlCode :989 | 56=AddPoint(sh) 58=MaxAddPoint(sh) | 60=Charisma(W)
+// 62=wMinusPoint(W) 64=wMaxMinusPoint(W). W/DW/short = little-endian
+// (cast direto x86 :883). Angulo = ((Angle-1)*45) graus (:980).
+struct ParsedJoinMapServer {
+    uint8_t  x, y, map, angleByte;
+    int      angleDeg;               // ((Angle-1)*45) :980 (byte 2 => 45)
+    uint64_t exp, nextExp;           // 8xBYTE MSB-first encadeado (:886-:938)
+    uint16_t levelUpPoint;
+    uint16_t stat[12];               // Str,Dex,Vit,Ene,Life,LifeMax,Mana,
+                                     // ManaMax,Shield,ShieldMax,SkillMana,
+                                     // SkillManaMax (ordem do struct :430-:443)
+    uint32_t gold;                   // :964
+    uint8_t  pk, ctlCode;            // :988-:989
+    int16_t  addPoint, maxAddPoint;  // :959-:960
+    uint16_t charisma, minusPoint, maxMinusPoint;  // :946/:961-:962
+};
+
+bool ParseC1_F3_03_JoinMapServerResponsePlain(const std::vector<uint8_t>& c1,
+                                              ParsedJoinMapServer& out, std::string& err) {
+    if (c1.size() != 66 || c1[1] != 0x42) {
+        err = "F3:03: tamanho invalido (espera C1 66 B / size 0x42; got " +
+              std::to_string(c1.size()) + " B)";
+        return false;
+    }
+    if (c1[0] != 0xC1) { err = "F3:03: espera C1"; return false; }
+    if (c1[2] != 0xF3 || c1[3] != 0x03) { err = "F3:03: head/sub invalidos"; return false; }
+    out.x = c1[4]; out.y = c1[5]; out.map = c1[6]; out.angleByte = c1[7];
+    out.angleDeg = (static_cast<int>(out.angleByte) - 1) * 45;        // :980
+    uint64_t e = 0;
+    for (int i = 0; i < 8; ++i) e = (e << 8) | c1[8 + i];             // BE
+    out.exp = e;
+    e = 0;
+    for (int i = 0; i < 8; ++i) e = (e << 8) | c1[16 + i];            // BE
+    out.nextExp = e;
+    std::memcpy(&out.levelUpPoint, &c1[24], 2);
+    for (int i = 0; i < 12; ++i) std::memcpy(&out.stat[i], &c1[26 + 2 * i], 2);
+    std::memcpy(&out.gold, &c1[50], 4);
+    out.pk = c1[54]; out.ctlCode = c1[55];
+    std::memcpy(&out.addPoint, &c1[56], 2);
+    std::memcpy(&out.maxAddPoint, &c1[58], 2);
+    std::memcpy(&out.charisma, &c1[60], 2);
+    std::memcpy(&out.minusPoint, &c1[62], 2);
+    std::memcpy(&out.maxMinusPoint, &c1[64], 2);
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-C)

@@ -377,12 +377,24 @@
   :6203-:6227; call-site [NOT RECOVERED], correlação documentada);
   parser {result, ok, statId, max dual-use, shieldMax, skillManaMax}.
   Binários removidos. [LEDGER §65].
-- **1.3-B (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **F3:0x01
+- **1.3-B (2026-09-05)**: **F3:0x01
   CreateCharacter completo (spec+impl+golden+loopback, exit 0×2, C1 nativo)**
   — spec `NEW_ERA_PROTOCOL_MVP_F3_01_CREATECHAR_SPEC.md` (REQ C1 15 B
   ID10+classSkin nibble :298-:308; RESP 19 B Result/Index/Level/Class
   :376-:386/:622-:670); builder c/ bounds (nome ≤10, nibbles ≤0xF).
   Binários removidos. [LEDGER §66].
+- **1.3-C (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **JoinGame/JoinMapServer
+  completo (spec+impl+golden+loopback, exit 0×2) — 1º pacote DUPLO-SISTEMA**:
+  TX = frame **olc::net/ASIO** 16 B [id:u16=0x000B LE][size:u32=10 LE][ID10]
+  (SendRequestJoinMapServer :322-:330 → gProtocolSend.SendPacket
+  BOTH_CONNECT_JOIN_GAME; framing ProtocolAsio.h :33-:37 fetch@580472e) — SEM
+  C1/XOR; ponte GS modern (SocketManagerModern :122-:131) traduz p/ clássico
+  F3:03 → CGCharacterInfoRecv; RX = **C1 F3:03 66 B (0x42)**
+  PRECEIVE_JOIN_MAP_SERVER :405-:452 (exp 8×BYTE BE; 12 stats W LE; Gold DW;
+  ângulo (a-1)×45 :980; SEM byte de result). [NOT RECOVERED]: sender GS do
+  response (callback DG) + macro spe do request clássico 14 B. Spec
+  `NEW_ERA_PROTOCOL_MVP_JOIN_GAME_SPEC.md` (classificação (2) parcial).
+  Binários removidos. [LEDGER §67].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -393,12 +405,12 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-C — F3:0x03 JoinMap/EnterGame** (fecha a transição "entrar no
-  mundo"): TX = SendRequestJoinMapServer :322-:330 — usa `gProtocolSend.
-  SendPacket(BOTH_CONNECT_JOIN_GAME, nameBuf[10])` (protocolo novo —
-  investigar framing no StreamPacketEngine/gProtocolSend); RX =
-  ReceiveJoinMapServer :871+ (retorna FALSE em falha). Pode exigir exploração
-  de nova evidência (não apenas inline).
+1. **1.3-D — A DEFINIR PELO USUÁRIO** (fronteira 1.3-C fechada): (a) primeiro
+   viewport/spawn básico (render/estado pós-join — consumiria os dados do
+   F3:03: map/x/y/angle), OU (b) protocol F3:0x04/05/07/08 (levantar handlers
+   e structs antes de decidir). Pendências técnicas herdadas: sender GS do
+   response F3:03 (callback DG) + macro spe do request clássico — ambos
+   [NOT RECOVERED] (não bloqueiam o MVP).
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

@@ -1,0 +1,6 @@
+{
+  "caso": "join_game_asio_tx_c1_f3_03_rx",
+  "req_asio_hex": "0b000a0000004865726f310000000000",
+  "resp_c1_hex": "c142f30364c80302010203040506070811121314151617180a001900140016000f0064006e0014003c0005000a0007000e0040e20100000003002000000000000000",
+  "expected_parse": { "id": "Hero1", "map": 3, "x": 100, "y": 200, "angleByte": 2, "angleDeg": 45, "gold": 123456, "exp": 72623859790382856, "levelUpPoint": 10, "strength": 25, "lifeMax": 110 }
+}
