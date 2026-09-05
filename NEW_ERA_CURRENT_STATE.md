@@ -336,7 +336,7 @@
   `test_vectors_f3_02/` + loopback `loopback_f3_02/` (server memcmp match;
   client result=1 SUCCESS). **Binários removidos** (workspace ~4,6 MB).
   [LEDGER §58].
-- **1.1-E (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **F3:0x30 Option
+- **1.1-E (2026-09-05)**: **F3:0x30 Option
   completo (spec+impl+golden+loopback, exit 0×2)** — spec
   `NEW_ERA_PROTOCOL_MVP_F3_30_OPTION_SPEC.md` (request C1 34 B c/
   option[30] :1597-:1603; response PRECEIVE_OPTION 34 B c/ HotKey swap
@@ -346,6 +346,14 @@
   F3 reais vão C1 PLAIN** (C3 golden = convenção de teste); charlist real
   leva +byLanguage; delete real usa Resident[20]; F3:52 req = int32.
   Binários removidos. [LEDGER §60].
+- **1.1-F (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **F3:0x52 MasterSkill
+  completo (spec+impl+golden+loopback, exit 0×2)** — **primeiro golden em
+  WIRE-FORMAT REAL**: REQ = C1 plain 8 B (SendRequestMasterLevelSkill
+  :2286-:2292, Send()=FALSE) + Xor32; RESP = PMSG_ANS_MASTERLEVEL_SKILL 15 B
+  (:2860-:2868) → C3 24 B; parse result/mlPoint/skillNum/skillLevel.
+  ⭐FIX CORE: unXor agora vale também para C1 direto (gap pego pelo
+  roundtrip; regressão login/f3_00/f3_02 re-rodada VERDE). Binários
+  removidos. [LEDGER §61].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -356,10 +364,10 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.1-F — F3:0x52 MasterSkill** (request = int32 SkillNum :2286-:2292;
-  response PMSG_ANS_MASTERLEVEL_SKILL 15 B :2860-:2868 — ambos já mapeados
-  §52/§60). Baixo custo. Obs.: correção de formatos wire-real (C1 plain +
-  byLanguage + Resident[20]) fica a comando explícito, se desejado.
+1. **DECISÃO do comandante**: (a) corrigir o wire-real dos antigos
+  (F3:00 +byLanguage/:294; F3:02 Resident[20]/:318; e_CHARS goldens em C1
+  plain) OU (b) seguir para novos subcodes F3:01 (create)/0x03
+  (join-map)/0x06 (add-point — req 1 byte :1193). Ambos mapeados §60/§61.
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

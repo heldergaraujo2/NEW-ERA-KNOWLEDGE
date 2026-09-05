@@ -236,15 +236,17 @@ bool DecodeAndParseMvpPacket(const std::vector<uint8_t>& pkt,
         frame[0] = 0xC1;
         frame[1] = static_cast<uint8_t>(plainLen + 1);              // size reconstruído (=49 no login)
         std::memcpy(frame.data() + 2, plain.data() + 1, static_cast<size_t>(plainLen - 1));
-        if (streamXored) {                              // Xor é artefato do BUILDER do cliente
-            UnXorStreamLikeEvidence(frame.data(), frame.size());  // (AddData :82-:94); GS TX cifra
-        }                                               // SEM Xor (DataSend :443-:470) ⇒ flag.
     } else if (pkt[0] == 0xC1) {
-        frame = pkt;
+        frame = pkt;                                    // 1.1-F: C1 direto (wire real do cliente)
     } else {
         err = "framing nao suportado (esperado C1/C3)";
         return false;
     }
+    if (streamXored) {                                  // Xor é artefato do BUILDER do cliente
+        UnXorStreamLikeEvidence(frame.data(), frame.size());  // (AddData :82-:94); GS TX cifra
+    }                                                   // SEM Xor (DataSend :443-:470) ⇒ flag.
+                                                        // 1.1-F: unXor agora VALE TAMBÉM para C1
+                                                        // direto (antes só C3-reconstruído — gap).
 
     if (frame.size() < 4 || frame[1] != frame.size()) { err = "tamanho C1 inconsistente"; return false; }
     // 1.1-C: mínimo C1 = 4 B ([C1][sz][head][sub] — ex.: request F3:00); guards
@@ -568,3 +570,67 @@ bool ParseC1_F3_30_OptionResponsePlain(const std::vector<uint8_t>& c1,
 }
 
 } } // namespace newera::mvp (bloco 1.1-E)
+
+// (bloco 1.1-F dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.1-F — F3:0x52 MASTER SKILL (spec: NEW_ERA_PROTOCOL_MVP_F3_52_MASTERSKILL_SPEC.md)
+// EVIDÊNCIA: TX real = SendRequestMasterLevelSkill (wsclientinline :2286-:2292):
+//   Init(C1,F3)<<0x52<<(int)SkillNum; Send() default bEncrypt=FALSE (:120)
+//   => WIRE REAL = C1 PLAIN 8 B: [C1][08][F3][52][SkillNum i32 LE] + Xor32 [3..8).
+// Response = PMSG_ANS_MASTERLEVEL_SKILL (WSclient.h :2860-:2868) 15 B:
+//   [btResult][nMLPoint i16][nSkillNum i32][nSkillLevel i32]; consumo :7389-:7397+.
+// Server: gMasterSkillTree.CGMasterSkillRecv (GS :999-:1002, GAMESERVER_UPDATE>=401).
+
+// C->S: request WIRE REAL (C1 plain 8 B + XOR32 em [3..8) — AddData bXor=TRUE §43).
+std::vector<uint8_t> BuildC1_F3_52_MasterSkillRequestPlain(int32_t skillNum) {
+    std::vector<uint8_t> p = { 0xC1, 0x08, 0xF3, 0x52, 0, 0, 0, 0 };
+    std::memcpy(&p[4], &skillNum, 4);                     // int32 LE (operator<<)
+    crypto::XorData32(p.data(), 3, p.size());
+    return p;
+}
+
+// C->S (opcional, teste de pipeline): wrap C3 — inner = serial+6 = 7 B
+// (1 bloco parcial) => ct 11 => C3 13 B.
+std::vector<uint8_t> BuildC3_F3_52_MasterSkillRequestEncrypted(int32_t skillNum,
+                                                               std::string* err = nullptr) {
+    crypto::PacketCryptoSM sm;
+    std::string lerr;
+    if (!TryLoadLoginKeys(sm, lerr)) { if (err) *err = lerr; return {}; }
+    auto plain = BuildC1_F3_52_MasterSkillRequestPlain(skillNum);
+    uint8_t inner[7];
+    static uint8_t s_serialByte = 0;            // incremental local (1ª = 0x01)
+    inner[0] = ++s_serialByte;
+    std::memcpy(&inner[1], plain.data() + 2, 6);
+    uint8_t ct[11];
+    int ctlen = sm.Encrypt(ct, inner, static_cast<int>(sizeof(inner)));
+    if (ctlen != 11) { if (err) *err = "Encrypt falhou (ctlen=" + std::to_string(ctlen) + ")"; return {}; }
+    std::vector<uint8_t> out;
+    out.reserve(13);
+    out.push_back(0xC3); out.push_back(13);
+    out.insert(out.end(), ct, ct + 11);
+    return out;
+}
+
+// S->C: parser do response (C1 plain 15 B; decode acima com streamXored=false).
+struct ParsedMasterSkill {
+    uint8_t  result;      // btResult (:7391 — 1 habilita)
+    int16_t  mlPoint;     // nMLPoint (:2865)
+    int32_t  skillNum;    // nSkillNum (:7393 > -1; switch :7397)
+    int32_t  skillLevel;  // nSkillLevel (:2867)
+};
+
+bool ParseC1_F3_52_MasterSkillResponsePlain(const std::vector<uint8_t>& c1,
+                                            ParsedMasterSkill& out, std::string& err) {
+    if (c1.size() < 15) { err = "F3:52: C1 truncado (<15 B)"; return false; }
+    if (c1[0] != 0xC1) { err = "F3:52: espera C1"; return false; }
+    if (c1[2] != 0xF3 || c1[3] != 0x52) { err = "F3:52: head/sub invalidos"; return false; }
+    out.result = c1[4];
+    std::memcpy(&out.mlPoint,    &c1[5], 2);
+    std::memcpy(&out.skillNum,   &c1[7], 4);
+    std::memcpy(&out.skillLevel, &c1[11], 4);
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.1-F)

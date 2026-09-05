@@ -1,0 +1,8 @@
+{
+  "caso": "F3_52_masterskill",
+  "req_c1_hex": "c108f328d4841a69",
+  "req_c3_hex": "c30dc8de0a9681b27237783b01",
+  "resp_c3_hex": "c318b4140e36d9ffa14ceccbfe0c753eb55297963efdc1fa",
+  "expected_parse": { "result": 1, "mlPoint": 5,
+    "skillNum": 123456, "skillLevel": 3 }
+}
