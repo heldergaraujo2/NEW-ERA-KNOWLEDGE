@@ -1238,3 +1238,68 @@ bool ApplyFrame_DeleteEntities_C1(const std::vector<uint8_t>& frame,
 }
 
 } } // namespace newera::mvp (bloco 1.3-I)
+
+// (bloco 1.3-J dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-J — POSITION UPDATE — HeadCode 0x15 PACKET_POSITION ReceiveMovePosition
+// — wire-real per spec 1.3-J (NEW_ERA_PROTOCOL_MVP_POSITION_UPDATE_SPEC.md).
+// EVIDÊNCIA: define PACKET_POSITION=0x15 (wsclientinline :24); dispatch
+// :13097-:13099; handler :1746-:1767. Framing C1 (cast LPPRECEIVE_MOVE_
+// POSITION :1748) sobre {PBMSG_HEADER; KeyH; KeyL; PositionX; PositionY}
+// (WSclient.h :892-:898) => frame FIXO 7 B [C1][07][15][KeyH][KeyL][X][Y].
+// Key=(KeyH<<8)+KeyL BE :1749 — SEM máscara 0x7FFF neste handler (nuance vs
+// 0x12/0x13/0x14). Semântica: PositionX/Y=Data :1762-:1763 E TargetX/Y=Data
+// :1764-:1765 (target=posição); JumpTime=1 :1766; SEM dir/angle no pacote
+// (permanece o do spawn). Irmão 0xD4 (PACKET_MOVE, PMOVE_CHARACTER :611-:620
+// c/ header CONDICIONAL #ifndef NEW_PROTOCOL_SYSTEM e Path[1] variável,
+// TargetAngle=Path[0]>>4 :1699) fica pendente.
+
+// S->C: 1 update de posição (update único por frame — sem lista).
+struct MoveUpdate {
+    uint16_t key;   // BE :1749 (sem máscara)
+    uint8_t  x, y;  // :1762-:1763
+};
+
+bool ParsePositionUpdatePlain_C1(const std::vector<uint8_t>& frame,
+                                 std::vector<MoveUpdate>& out, std::string& err) {
+    out.clear();
+    if (frame.size() != 7 || frame[1] != 7) {
+        err = "0x15: tamanho invalido (espera C1 7 B fixo; got " +
+              std::to_string(frame.size()) + " B)";
+        return false;
+    }
+    if (frame[0] != 0xC1) { err = "0x15: espera C1 (PRECEIVE_MOVE_POSITION :892-:898)"; return false; }
+    if (frame[2] != 0x15) { err = "0x15: head invalido"; return false; }
+    MoveUpdate m{};
+    m.key = (uint16_t)(((uint16_t)frame[3] << 8) | frame[4]);   // BE :1749
+    m.x = frame[5];
+    m.y = frame[6];
+    out.push_back(m);                                           // 1 update
+    return true;
+}
+
+// S->C: aplica update a keys EXISTENTES (x/y/target=Data; dir/angle inalterados);
+// key inexistente => ignora sem falhar (contabiliza em *missed se dado).
+bool ApplyFrame_PositionUpdate_C1(const std::vector<uint8_t>& frame,
+                                  WorldState& ws, std::string& err,
+                                  size_t* missed = nullptr) {
+    std::vector<MoveUpdate> ups;                                // vetor LOCAL
+    if (!ParsePositionUpdatePlain_C1(frame, ups, err)) return false;
+    if (missed) *missed = 0;
+    for (const MoveUpdate& m : ups) {
+        auto it = ws.entities.find(m.key);
+        if (it == ws.entities.end()) {                          // miss: ignora
+            if (missed) ++(*missed);
+            continue;
+        }
+        EntityRecord& r = it->second;
+        r.x = m.x; r.y = m.y;                                   // :1762-:1763
+        r.targetX = m.x; r.targetY = m.y;                       // :1764-:1765
+        // dir/angleDeg propositalmente NÃO alterados (não vêm no 0x15)
+    }
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-J)

@@ -1,0 +1,11 @@
+{
+  "caso": "position_update_c1_0x15_cycle",
+  "frame12_c2_hex": "c2004f120201000a1403000102030405060708090a0b0c0d0e0f104865726f4100000000000b15130002001e2801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4865726f4200000000001f2920025566",
+  "frame13_c2_hex": "c2001d1302010100110a140b151001aa020200221e281f292003010203",
+  "move_ok_hex": "c1071501004d58",
+  "move_miss_hex": "c1071533330909",
+  "move_trunc_hex": "c1071501004d",
+  "delete14_hex": "c10a1403010001019999",
+  "expected": { "key_moved": 256, "new_x": 77, "new_y": 88, "missed_final": 1, "ws_final_size": 2 },
+  "trunc": { "applied": false, "error": "0x15: tamanho invalido (espera C1 7 B fixo; got 6 B)", "note": "estado intocado (snapshot)" }
+}

@@ -444,7 +444,7 @@
   TWO-TU c/ espelho ODR do bloco 1.3-H. Spec
   `NEW_ERA_PROTOCOL_MVP_WORLDSTATE_LOOP_SPEC.md`. Binários removidos
   (1.681.320 B liberados). [LEDGER §72].
-- **1.3-I (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **viewport delete 0x14
+- **1.3-I (2026-09-05)**: **viewport delete 0x14
   completo (spec+impl+golden+loopback, exit 0×2, C1 — o único do ciclo em C1)**
   — spec classe (1): handler :2793-:2848; PHEADER_DEFAULT :113-:118 +
   PDELETE_CHARACTER :622-:626 (2 B BE, **stride fixo 2** :2846); Key
@@ -454,6 +454,17 @@
   trunc 9 B rejeitado c/ estado intocado. Parser
   `ParseViewportDeletePlain_C1` + `ApplyFrame_DeleteEntities_C1` (erase
   tolerante). Binários removidos. [LEDGER §73].
+- **1.3-J (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **position update 0x15
+  completo (spec+impl+golden+loopback, exit 0×2, C1 7 B fixo) — CICLO
+  SPAWN/MOVE/DELETE FECHADO** — spec classe (1): PACKET_POSITION=0x15
+  (wsclientinline :24); ReceiveMovePosition :1746-:1767; PRECEIVE_MOVE_POSITION
+  :892-:898 [C1][07][15][KeyH BE][KeyL][X][Y]; **Key BE SEM máscara** :1749
+  (nuance vs 0x12/0x13/0x14); target=posição :1764-:1765; sem dir/angle.
+  Ciclo provado: spawn 4 → move 0x0100→(77,88) target=idem (missed=0) →
+  miss 0x3333 ignored+missed=1 → trunc 6 B rejeitado estado intocado →
+  delete → ws=2. `MoveUpdate` + `ParsePositionUpdatePlain_C1` +
+  `ApplyFrame_PositionUpdate_C1(&missed)`. Pendência: 0xD4 PACKET_MOVE
+  (path/angle; header condicional). Binários removidos. [LEDGER §74].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -464,13 +475,11 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-J — movement/position** (decisão do usuário): primeiro
-   **BOTH_POSITION do protocolo novo** (olc::net — SendPositionNew
-   ProtocolSend.h :150; head BOTH_POSITION=ordinal 6 ⇒ 0x0006; espelho da
-   ponte SocketManagerModern a investigar), OU **pacote clássico de
-   movimento** (PACKET_MOVE :13094-:13095 ReceiveMoveCharacter /
-   PACKET_POSITION :13097-:13099 — structs PMOVE_CHARACTER :602-:620 etc.).
-   Fecha o ciclo spawn/delete/move do world tick.
+1. **1.3-K — A ESCOLHER** (decisão do usuário): (a) **0xD4 PACKET_MOVE**
+   (path/angle — PMOVE_CHARACTER :611-:620 c/ header CONDICIONAL
+   `#ifndef NEW_PROTOCOL_SYSTEM` e Path[1] variável; TargetAngle=Path[0]>>4
+   :1699; handler :1688-:1745), OU (b) **attack/skill** (family 0xDx —
+   a mapear). Com 1.3-J, o world tick já tem spawn/delete/move completo.
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —
