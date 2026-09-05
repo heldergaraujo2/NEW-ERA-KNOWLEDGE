@@ -370,13 +370,19 @@
   F3:0x30 Option (C1 34 B) OK (exit 0×2)** — spec §6 WIRE-REAL adicionada;
   golden+loopback regenerados C1↔C1 sem crypto; builder C3 DEPRECATED.
   **Migração wire-real da família F3 COMPLETA (00/02/30/52).** [LEDGER §64].
-- **1.3-A (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **F3:0x06 AddPoint
+- **1.3-A (2026-09-05)**: **F3:0x06 AddPoint
   completo, wire-real desde o nascimento (spec+impl+golden+loopback,
   exit 0×2, C1)** — spec `NEW_ERA_PROTOCOL_MVP_F3_06_ADDPOINT_SPEC.md`
   (REQ C1 5 B pointType :1189-:1195; RESP 11 B Result nibble-packado
   :6203-:6227; call-site [NOT RECOVERED], correlação documentada);
   parser {result, ok, statId, max dual-use, shieldMax, skillManaMax}.
   Binários removidos. [LEDGER §65].
+- **1.3-B (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **F3:0x01
+  CreateCharacter completo (spec+impl+golden+loopback, exit 0×2, C1 nativo)**
+  — spec `NEW_ERA_PROTOCOL_MVP_F3_01_CREATECHAR_SPEC.md` (REQ C1 15 B
+  ID10+classSkin nibble :298-:308; RESP 19 B Result/Index/Level/Class
+  :376-:386/:622-:670); builder c/ bounds (nome ≤10, nibbles ≤0xF).
+  Binários removidos. [LEDGER §66].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -387,10 +393,12 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-B — F3:0x01 CreateCharacter** (próximo bloco funcional pós-login):
-  TX = SendRequestCreateCharacter :298-:308 (ID+Class+Skin — extrair);
-  RX = PRECEIVE_CREATE_CHARACTER 19 B (:376-:386, já mapeada §52). Mesmo
-  ciclo wire-real C1.
+1. **1.3-C — F3:0x03 JoinMap/EnterGame** (fecha a transição "entrar no
+  mundo"): TX = SendRequestJoinMapServer :322-:330 — usa `gProtocolSend.
+  SendPacket(BOTH_CONNECT_JOIN_GAME, nameBuf[10])` (protocolo novo —
+  investigar framing no StreamPacketEngine/gProtocolSend); RX =
+  ReceiveJoinMapServer :871+ (retorna FALSE em falha). Pode exigir exploração
+  de nova evidência (não apenas inline).
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

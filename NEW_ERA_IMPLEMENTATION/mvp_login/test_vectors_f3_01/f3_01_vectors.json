@@ -1,0 +1,7 @@
+{
+  "caso": "F3_01_createchar_wire_c1",
+  "req_c1_hex": "c10ff37b8f58b5a9c40980367f2229",
+  "resp_c1_hex": "c113f301014865726f4e657700000000010003",
+  "expected_parse": { "result": 1, "id": "HeroNew",
+    "index": 0, "level": 1, "serverClass": 3, "classSkin": 50 }
+}

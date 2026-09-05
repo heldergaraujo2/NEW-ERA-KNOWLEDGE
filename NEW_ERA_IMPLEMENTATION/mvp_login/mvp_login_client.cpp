@@ -716,3 +716,53 @@ bool ParseC1_F3_06_AddPointResponsePlain(const std::vector<uint8_t>& c1,
 }
 
 } } // namespace newera::mvp (bloco 1.3-A)
+
+// (bloco 1.3-B dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-B — F3:0x01 CREATE CHARACTER — wire-real per spec 1.3-B
+// (NEW_ERA_PROTOCOL_MVP_F3_01_CREATECHAR_SPEC.md). EVIDÊNCIA: TX =
+// SendRequestCreateCharacter (wsclientinline :298-:308): Init(C1,F3)<<0x01;
+// ID[10] zero-padded (AddData/AddNullData); <<(BYTE)((Class<<4)+Skin) — nibble!
+// Send() default FALSE => C1 PLAIN 15 B + Xor32 [3..15). Response =
+// PRECEIVE_CREATE_CHARACTER (WSclient.h :376-:386) 19 B: Result 1=ok/0=FAIL/
+// 2=FAIL2 (:625/:664/:666); Index slot 0..4; Level WORD; Class tipo-server
+// (conversão no cliente :653); ID[10]+NUL (:656).
+
+// C->S: request WIRE REAL — [C1][0F][F3][01][ID10][classSkin] + Xor32 [3..15).
+std::vector<uint8_t> BuildC1_F3_01_CreateCharRequestWire(const std::string& name10,
+                                                         uint8_t cls, uint8_t skin) {
+    if (name10.size() > 10 || cls > 0x0F || skin > 0x0F) return {};   // bounds-check
+    std::vector<uint8_t> p(15, 0);
+    p[0] = 0xC1; p[1] = 15; p[2] = 0xF3; p[3] = 0x01;
+    for (size_t i = 0; i < name10.size(); ++i) p[4 + i] = static_cast<uint8_t>(name10[i]);
+    p[14] = static_cast<uint8_t>((cls << 4) | skin);   // :306 nibble-packado
+    crypto::XorData32(p.data(), 3, p.size());
+    return p;
+}
+
+// S->C: parser do response (C1 plain 19 B; wire-real per spec 1.3-B).
+struct ParsedCreateChar {
+    uint8_t  result;    // 1=ok (:625) 0=FAIL (:664) 2=FAIL2 (:666)
+    char     id[11];    // ID[10] + NUL (:656-:657)
+    uint8_t  index;     // slot 0..4 (:629/:647)
+    uint16_t level;     // :651
+    uint8_t  serverClass; // tipo server; conversão p/ cliente é fora (:653)
+};
+
+bool ParseC1_F3_01_CreateCharResponsePlain(const std::vector<uint8_t>& c1,
+                                           ParsedCreateChar& out, std::string& err) {
+    if (c1.size() < 19) { err = "F3:01: C1 truncado (<19 B)"; return false; }
+    if (c1[0] != 0xC1) { err = "F3:01: espera C1"; return false; }
+    if (c1[2] != 0xF3 || c1[3] != 0x01) { err = "F3:01: head/sub invalidos"; return false; }
+    out.result = c1[4];
+    std::memcpy(out.id, &c1[5], 10);
+    out.id[10] = '\0';
+    out.index = c1[15];
+    std::memcpy(&out.level, &c1[16], 2);
+    out.serverClass = c1[18];
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-B)
