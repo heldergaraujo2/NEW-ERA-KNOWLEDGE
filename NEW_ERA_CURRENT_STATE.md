@@ -423,7 +423,7 @@
   (`kViewportMaxBuffSlotIndex`; :599/:613); negativos (truncado/resíduo).
   Spec 5.350 B c0ed6474… · core 50.352 B 78c4e2bb… SYNTAX OK. Binários
   removidos. [LEDGER §70].
-- **1.3-G (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **viewport 0x12
+- **1.3-G (2026-09-05)**: **viewport 0x12
   characters completo (spec+impl+golden+loopback, exit 0×2, C2)** — spec
   `NEW_ERA_PROTOCOL_MVP_VIEWPORT_CHARACTER_SPEC.md` (classe (1): handler
   :2167-:2380; PCREATE_CHARACTER :537-:550 c/ Equipment[17] :71, ID[10],
@@ -433,6 +433,17 @@
   frame de 115 e o valor foi corrigido pela evidência). Parser
   `ParseViewportCharacterSpawnPlain_C2` + `SpawnCharacter`. Binários
   removidos. [LEDGER §71].
+- **1.3-H (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **WorldState loop
+  completo (spec+impl+golden+loopback, exit 0×2)** — agregador spawn-only
+  0x12+0x13: `WorldState.entities` (unordered_map key→EntityRecord, kind
+  Character/Monster) + `ApplyFrame_C2_12_Characters`/`ApplyFrame_C2_13_Monsters`
+  (**last-write-wins**; parse local ⇒ frame inválido NÃO altera estado — provado
+  com trunc 28 B e snapshot; key==0 permitida). Golden: tick 2+2 entidades
+  (frames lidos dos jsons versionados); loopback 3 frames `[len16LE][C2]` por
+  socket real (framing len16LE = artefato do stub). Build gerador/harness =
+  TWO-TU c/ espelho ODR do bloco 1.3-H. Spec
+  `NEW_ERA_PROTOCOL_MVP_WORLDSTATE_LOOP_SPEC.md`. Binários removidos
+  (1.681.320 B liberados). [LEDGER §72].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -443,11 +454,12 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-H — MVP loop de world tick** (decisão do usuário): consumir
-   **0x12+0x13 em sequência** e manter um **WorldState** com mapa de entities
-   (players/monstros por key; spawn/delete/move) — primeiro passo de "mundo
-   vivo" agregando os parsers já provados (0x12 §71, 0x13 §69/§70; candidatos
-   seguintes: 0x14 delete :13116-:13119, PACKET_MOVE/POSITION :13094-:13099).
+1. **1.3-I — A ESCOLHER NO PRÓXIMO COMANDO** (decisão do usuário):
+   (a) **delete viewport head 0x14** (remove entity do WorldState — handler
+   `ReceiveDeleteCharacterViewport` :2793, dispatch :13116-:13119), OU
+   (b) **movement/position** (PACKET_MOVE :13094-:13095 / PACKET_POSITION
+   :13097-:13099 — atualiza x/y das entidades). Ambos fecham o ciclo
+   spawn/delete/move do world tick.
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

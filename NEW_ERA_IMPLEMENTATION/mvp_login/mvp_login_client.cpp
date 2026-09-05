@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <array>
 #include <cstring>
+#include <unordered_map>
 #include <vector>
 #include <string>
 
@@ -1100,3 +1101,86 @@ bool ParseViewportCharacterSpawnPlain_C2(const std::vector<uint8_t>& pkt,
 }
 
 } } // namespace newera::mvp (bloco 1.3-G)
+
+// (bloco 1.3-H dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-H — WORLDSTATE MVP LOOP — agregador dos spawns provados (spec 1.3-H:
+// NEW_ERA_PROTOCOL_MVP_WORLDSTATE_LOOP_SPEC.md). NÃO decodifica nada novo:
+// delega aos parsers provados (0x12 §71 / 0x13 §69-§70) e mantém
+// unordered_map<key,EntityRecord> com LAST-WRITE-WINS. Frame inválido NÃO
+// altera estado (parse em vetor local; apply só após OK). key==0 permitida
+// (range provado 0..0x7FFF :2177/:2605; sem proibição evidenciada).
+// Move/delete ficam para depois (0x14 :13116-:13119; MOVE/POSITION
+// :13094-:13099). Equipment[17] NÃO entra (opaco, render-layer :2320).
+
+enum class EntityKind : uint8_t { Character = 0, Monster = 1 };
+
+struct EntityRecord {
+    uint16_t    key = 0;      // 0..0x7FFF (:2177/:2605)
+    EntityKind  kind = EntityKind::Monster;
+    uint8_t     x = 0, y = 0;
+    uint8_t     targetX = 0, targetY = 0;   // provados nos dois pacotes
+    uint8_t     dir = 0;                    // Path>>4 (:2271/:2637)
+    int         angleDeg = 0;               // ((dir-1)*45)
+    uint8_t     pk = 0;        // só Character (Path&0xF :2237)
+    char        id[11] = {};   // só Character (ID[10]+NUL :2353-:2354)
+    uint8_t     classByte = 0; // só Character (:2235; pose=&0x07 :2240)
+    uint16_t    type = 0;      // só Monster (10 bits :2597)
+    std::vector<uint8_t> buffs;             // s_BuffEffectState :2361/:2614
+};
+
+struct WorldState {
+    std::unordered_map<uint16_t, EntityRecord> entities;
+
+    size_t countByKind(EntityKind k) const {   // counters derivados (sem cache)
+        size_t n = 0;
+        for (const auto& kv : entities) if (kv.second.kind == k) ++n;
+        return n;
+    }
+    void clear() { entities.clear(); }
+};
+
+// C2 0x12 -> upsert de characters (parse local; apply só se frame inteiro OK).
+bool ApplyFrame_C2_12_Characters(const std::vector<uint8_t>& frame,
+                                 WorldState& ws, std::string& err) {
+    std::vector<SpawnCharacter> parsed;                       // vetor LOCAL
+    if (!ParseViewportCharacterSpawnPlain_C2(frame, parsed, err)) return false;
+    for (auto& sc : parsed) {
+        EntityRecord r{};
+        r.key = sc.key;                                       // 0..0x7FFF
+        r.kind = EntityKind::Character;
+        r.x = sc.x; r.y = sc.y;
+        r.targetX = sc.targetX; r.targetY = sc.targetY;
+        r.dir = sc.dir; r.angleDeg = sc.angleDeg;
+        r.pk = sc.pk;                                         // :2237
+        std::memcpy(r.id, sc.id, sizeof r.id);                // 11 B c/ NUL
+        r.classByte = sc.classByte;
+        r.buffs = std::move(sc.buffs);
+        ws.entities[r.key] = std::move(r);                    // last-write-wins
+    }
+    return true;
+}
+
+// C2 0x13 -> upsert de monstros (parse local; apply só se frame inteiro OK).
+bool ApplyFrame_C2_13_Monsters(const std::vector<uint8_t>& frame,
+                               WorldState& ws, std::string& err) {
+    std::vector<SpawnEntity> parsed;                          // vetor LOCAL
+    if (!ParseC2_ViewportMonsterSpawnPlain(frame, parsed, err)) return false;
+    for (auto& se : parsed) {
+        EntityRecord r{};
+        r.key = se.key;                                       // 0..0x7FFF
+        r.kind = EntityKind::Monster;
+        r.x = se.x; r.y = se.y;
+        r.targetX = se.targetX; r.targetY = se.targetY;
+        r.dir = se.dir; r.angleDeg = se.angleDeg;
+        r.pk = 0;                                             // inexistente no 0x13
+        r.type = se.type;                                     // :2597
+        r.buffs = std::move(se.buffs);
+        ws.entities[r.key] = std::move(r);                    // last-write-wins
+    }
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-H)

@@ -1,0 +1,11 @@
+{
+  "caso": "worldtick_c2_12_13_trunc",
+  "frame12_c2_hex": "c2004f120201000a1403000102030405060708090a0b0c0d0e0f104865726f4100000000000b15130002001e2801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4865726f4200000000001f2920025566",
+  "frame13_c2_hex": "c2001d1302010100110a140b151001aa020200221e281f292003010203",
+  "frame13_trunc_hex": "c2001d1302010100110a140b151001aa020200221e281f2920030102",
+  "expected": { "entities": 4, "characters": 2, "monsters": 2,
+    "keys": [ 256, 512, 257, 514 ],
+    "chars": [ { "key": 256, "id": "HeroA", "pk": 3, "dir": 1 }, { "key": 512, "id": "HeroB", "pk": 0, "dir": 2, "buffs_len": 2 } ],
+    "monsters": [ { "key": 257, "type": 17, "buffs_len": 1 }, { "key": 514, "type": 34, "buffs_len": 3 } ],
+    "trunc": { "applied": false, "error": "0x13: tamanho C2 inconsistente (declared 29 != total 28)", "state_unchanged": true } }
+}
