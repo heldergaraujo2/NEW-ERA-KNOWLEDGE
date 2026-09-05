@@ -479,7 +479,7 @@
   `MovePathUpdate` + `ParsePacketMoveD4Plain_Asio` +
   `ApplyFrame_PacketMoveD4_Asio(&missed)`. Binários removidos.
   [LEDGER §75].
-- **1.3-L (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **BOTH_POSITION completo
+- **1.3-L (2026-09-05)**: **BOTH_POSITION completo
   (spec+impl+golden+loopback, exit 0×2) — segundo canal de position FECHADO
   com EQUIVALÊNCIA 0x15 provada** — BOTH_POSITION=0x0006 (ordinal 6, enum
   ProtocolSend.h :7-:26); ponte :92-:94 → ReceiveMovePosition(body.data())
@@ -494,6 +494,23 @@
   `kProto_BOTH_POSITION` + `ParseBOTH_POSITION_Asio` +
   `ApplyFrame_BOTH_POSITION_Asio(&missed)`. Binários removidos.
   [LEDGER §76].
+- **1.3-M (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **Damage RX completo
+  (spec+impl+golden+loopback, exit 0×2) — 1º COMBAT SIGNAL + TÚNEL
+  BOTH_MESSAGE provados** — PACKET_ATTACK=0x11 (wsclientinline :26);
+  dispatch :13143-:13144 → ReceiveAttackDamage :2984-:3191; PRECEIVE_ATTACK
+  :674-:685 ⇒ **C1 10 B fixo** [C1][0A][11][KeyH][KeyL][DamH][DamL][DT][SH][SL];
+  Key BE c/ **Success=b15 + &0x7FFF** :2995-:2997; Damage/ShieldDamage WORD
+  BE; DT type&0x3F/b6/b7 (monk OFF); apply: lastDamage (c->Hit :3188) +
+  clamp-0 de hp/shield opcionais (não vêm no viewport). **⭐BOTH_MESSAGE
+  olc 0x000C = TÚNEL de pacote clássico cru** (:99-:137 →
+  TranslateProtocol :135; autodetect C1/C2/C3/C4) — canal genérico do build
+  moderno. Ciclo provado: atk_ok (raw 0x8100 → key 0x0100, lastDamage
+  0x0123, DT 0xC5 decode completo) → miss (missed=1) → trunc sem efeito →
+  túnel both_ok APLICA inner (probe) → túnel trunc sem efeito.
+  `DamageEvent` + `ParseDamageRxPlain_C1` + `ApplyFrame_DamageRx_C1` +
+  `ExtractClassicFromBothMessage_Asio` +
+  `ApplyFrame_BOTH_MESSAGE_Tunnel_DamageOnly`. Two-TU (espelho ODR)
+  retomado. Binários removidos. [LEDGER §77].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -504,11 +521,10 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-M (decisão do usuário, 2026-09-05)**: **attack/skill básico** —
-   começar pelo o mais simples do dispatcher (família attack 0xDx do
-   dispatcher clássico + espelho olc BOTH_ATTACK1-3, enum ordinais 8/9/10 —
-   a mapear; mesma metodologia 1.3-K/1.3-L: evidência → spec → core →
-   golden/loopback).
+1. **1.3-N (decisão do usuário, 2026-09-05)**: **TX mínimo de ataque/skill** —
+   escolher o menor request C→S do WSclientinline (attack/skill TX do
+   cliente; mesma metodologia: evidência → spec → core → golden/loopback;
+   incluir TX olc BOTH_ATTACK1-3 0x0008/0x0009/0x000A quando mapeado).
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

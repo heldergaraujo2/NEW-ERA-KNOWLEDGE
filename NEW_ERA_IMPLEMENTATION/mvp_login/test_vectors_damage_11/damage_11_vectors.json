@@ -1,0 +1,12 @@
+{
+  "caso": "damage_rx_0x11_tunnel_0x000c",
+  "frame12_c2_hex": "c2004f120201000a1403000102030405060708090a0b0c0d0e0f104865726f4100000000000b15130002001e2801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4865726f4200000000001f2920025566",
+  "frame13_c2_hex": "c2001d1302010100110a140b151001aa020200221e281f292003010203",
+  "attack_ok_c1_hex": "c10a1181000123c50044",
+  "attack_miss_c1_hex": "c10a1133330010000000",
+  "attack_trunc_c1_hex": "c10a1181000123c500",
+  "both_ok_hex": "0c000a000000c10a1181000123c50044",
+  "both_trunc_hex": "0c000a000000c10a1181000123c500",
+  "expected": { "key": 256, "key_hex": "0x0100", "lastDamage": 291, "lastDamage_hex": "0x0123", "success": true, "damageType": 5, "doubleEnable": true, "comboEnable": true, "shieldDamage": 68, "missed_classic": 1, "missed_both": 0, "ws_size": 4 },
+  "trunc": { "applied": false, "error": "0x000C: size u32 LE (10) != body real (9 B)" } 
+}

@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <optional>
 
 namespace newera {
 namespace mvp {
@@ -1129,6 +1130,12 @@ struct EntityRecord {
     uint8_t     classByte = 0; // só Character (:2235; pose=&0x07 :2240)
     uint16_t    type = 0;      // só Monster (10 bits :2597)
     std::vector<uint8_t> buffs;             // s_BuffEffectState :2361/:2614
+    // 1.3-M (damage RX 0x11): HP/Shield NÃO vêm no viewport (0x12/0x13 sem
+    // Life) => opcionais, só populados por pacote futuro de stats; lastDamage
+    // espelha c->Hit = Damage (:3188 — todos os caminhos do handler)
+    std::optional<int> hp;      // ausente até stats (não recuperado no MVP)
+    std::optional<int> shield;  // idem
+    int lastDamage = -1;        // último dano recebido (c->Hit :3188)
 };
 
 struct WorldState {
@@ -1460,3 +1467,130 @@ bool ApplyFrame_BOTH_POSITION_Asio(const std::vector<uint8_t>& frame,
 }
 
 } } // namespace newera::mvp (bloco 1.3-L)
+
+// (bloco 1.3-M dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-M — DAMAGE RX — PACKET_ATTACK 0x11 (C1 10 B) — ReceiveAttackDamage —
+// per spec 1.3-M (NEW_ERA_PROTOCOL_MVP_DAMAGE_RX_SPEC.md).
+// EVIDÊNCIA: #define PACKET_ATTACK 0x11 (wsclientinline.h :26); dispatcher
+// case PACKET_ATTACK :13143-:13144; handler ReceiveAttackDamage :2984-:3191;
+// struct PRECEIVE_ATTACK (WSclient.h :674-:685) = PBMSG_HEADER(3) + 7 BYTEs
+// => frame C1 FIXO 10 B [C1][0A][11][KeyH][KeyL][DamH][DamL][DT][SH][SL].
+// Key raw BE :2995; Success = b15 (raw>>15) :2996; Key &= 0x7FFF :2997
+// (máscara PRESENTE — nuance vs 0x15/0x0006). Damage/ShieldDamage WORD BE
+// :3002/:3013. DamageType :3009-:3012: type=&0x3F, bDouble=>>6&1,
+// bCombo=>>7&1 (branch não-Monk — PBG_ADD_NEWCHAR_MONK_SKILL não definido
+// nas evidências). Apply: self (Key==HeroKey) Life/Shield clamp-0 :3031-:3041;
+// c->Hit = Damage :3188 (lastDamage, todos os caminhos). TRANSPORTE MODERNO:
+// BOTH_MESSAGE olc 0x000C = túnel de pacote clássico cru -> TranslateProtocol
+// :135 (ProtocolSend.cpp :99-:137) — unwrap documentado na spec; parser P1 =
+// C1 clássico (payload do túnel). Debug :3190 "0x15" = mislabel stale.
+struct DamageEvent {
+    uint16_t key = 0;           // pós-máscara &0x7FFF (:2997)
+    bool     success = false;   // b15 do raw (:2996)
+    uint16_t damage = 0;        // WORD BE (:3002)
+    uint16_t shieldDamage = 0;  // WORD BE (:3013)
+    uint8_t  damageTypeRaw = 0; // byte cru (:3009)
+    int      type = 0;          // &0x3F (:3009)
+    bool     doubleEnable = false; // >>6 &1 (:3011)
+    bool     comboEnable = false;  // >>7 &1 (:3012)
+};
+
+// S->C: parse do damage 0x11 (C1 clássico 10 B fixo).
+bool ParseDamageRxPlain_C1(const std::vector<uint8_t>& frame,
+                           DamageEvent& out, std::string& err) {
+    if (frame.size() != 10) {
+        err = "0x11: tamanho C1 invalido (fixo 10 B = C1 0A 11 + 7 payload; got " +
+              std::to_string(frame.size()) + " B)";
+        return false;
+    }
+    if (frame[0] != 0xC1 || frame[1] != 0x0A || frame[2] != 0x11) {
+        err = "0x11: header C1 invalido (espera C1 0A 11 — PACKET_ATTACK)";
+        return false;
+    }
+    const int raw = ((int)frame[3] << 8) | frame[4];          // BE :2995
+    out.success       = (raw >> 15) != 0;                     // b15 :2996
+    out.key           = (uint16_t)(raw & 0x7FFF);             // máscara :2997
+    out.damage        = (uint16_t)(((int)frame[5] << 8) | frame[6]);
+    out.damageTypeRaw = frame[7];
+    out.type          = frame[7] & 0x3F;
+    out.doubleEnable  = ((frame[7] >> 6) & 1) != 0;
+    out.comboEnable   = ((frame[7] >> 7) & 1) != 0;
+    out.shieldDamage  = (uint16_t)(((int)frame[8] << 8) | frame[9]);
+    return true;
+}
+
+// S->C: aplica dano a keys EXISTENTES. lastDamage sempre (:3188); hp/shield
+// opcionais decaem com clamp-0 SOMENTE se populados (:3031-:3041 — upstream
+// faz apenas p/ HeroKey; WorldState não conhece hero => regra aplicada aos
+// opcionais populados de qualquer entidade, nuance documentada). Key
+// inexistente => ignora sem falhar (conta em *missed). Frame inválido não
+// altera estado (parse local).
+bool ApplyFrame_DamageRx_C1(const std::vector<uint8_t>& frame,
+                            WorldState& ws, std::string& err,
+                            size_t* missed = nullptr) {
+    DamageEvent ev;
+    if (!ParseDamageRxPlain_C1(frame, ev, err)) return false;
+    auto it = ws.entities.find(ev.key);
+    if (it == ws.entities.end()) {
+        if (missed) ++(*missed);
+        return true;
+    }
+    EntityRecord& r = it->second;
+    r.lastDamage = (int)ev.damage;                           // c->Hit :3188
+    if (r.hp)
+        *r.hp = (*r.hp >= (int)ev.damage) ? *r.hp - (int)ev.damage : 0;
+    if (r.shield)
+        *r.shield = (*r.shield >= (int)ev.shieldDamage) ? *r.shield - (int)ev.shieldDamage : 0;
+    return true;
+}
+
+// ---------------------------------------------------------------------------
+// 1.3-M P2 — TÚNEL BOTH_MESSAGE (olc id=0x000C) — ProtocolSend.cpp :99-:137:
+// body olc = pacote CLÁSSICO cru (C1/C2/C3/C4 autodetect :111-:121) ->
+// TranslateProtocol(head, recv, size, 0) :135 (dispatcher clássico). Aqui:
+// unwrap mínimo — escopo deliberado SOMENTE inner C1 head 0x11 (damage);
+// sem inventar dispatcher completo (inner demais => erro claro).
+static constexpr uint16_t kProto_BOTH_MESSAGE = 0x000C;   // ordinal 12 (:7-:26)
+
+// S->C: extrai o pacote clássico cru do body do BOTH_MESSAGE.
+bool ExtractClassicFromBothMessage_Asio(const std::vector<uint8_t>& frame,
+                                        std::vector<uint8_t>& outClassic,
+                                        std::string& err) {
+    if (frame.size() < 6) {
+        err = "0x000C: frame olc invalido (min 6 B = id2+size4; got " +
+              std::to_string(frame.size()) + " B)";
+        return false;
+    }
+    uint16_t id = 0; uint32_t sz = 0;
+    std::memcpy(&id, &frame[0], 2);                        // u16 LE
+    std::memcpy(&sz, &frame[2], 4);                        // u32 LE
+    if (id != kProto_BOTH_MESSAGE) {
+        err = "0x000C: espera olc id=0x000C (BOTH_MESSAGE; enum :7-:26)";
+        return false;
+    }
+    const size_t body = frame.size() - 6;
+    if ((size_t)sz != body) {
+        err = "0x000C: size u32 LE (" + std::to_string(sz) +
+              ") != body real (" + std::to_string(body) + " B)";
+        return false;
+    }
+    outClassic.assign(frame.begin() + 6, frame.end());
+    return true;
+}
+
+// S->C: túnel BOTH_MESSAGE aplicando APENAS inner C1 head 0x11 (damage RX).
+bool ApplyFrame_BOTH_MESSAGE_Tunnel_DamageOnly(const std::vector<uint8_t>& frame,
+                                               WorldState& ws, std::string& err,
+                                               size_t* missed = nullptr) {
+    std::vector<uint8_t> classic;
+    if (!ExtractClassicFromBothMessage_Asio(frame, classic, err)) return false;
+    if (classic.size() >= 3 && classic[0] == 0xC1 && classic[2] == 0x11)
+        return ApplyFrame_DamageRx_C1(classic, ws, err, missed);
+    err = "0x000C: inner packet not supported in this MVP (somente C1 head 0x11)";
+    return false;
+}
+
+} } // namespace newera::mvp (bloco 1.3-M)
