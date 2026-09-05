@@ -1,0 +1,7 @@
+{
+  "caso": "F3_02_delete",
+  "req_c3_hex": "c3231cb6385e17ce83d56d340144021e53cab3741410cbfe0431638586303015d097a2",
+  "resp_c3_hex": "c30d0a572a7cd7dac278183009",
+  "expected_parse": { "result": 1, "meaning": "SUCCESS",
+    "req_id": "Hero1", "req_resident": "1234567890" }
+}

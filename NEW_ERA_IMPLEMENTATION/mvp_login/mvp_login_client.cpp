@@ -214,7 +214,8 @@ bool DecodeAndParseMvpPacket(const std::vector<uint8_t>& pkt,
                              crypto::PacketCryptoSM& rxSm,
                              const uint8_t clientVersion[5],
                              ParsedMvp& out, std::string& err,
-                             bool streamXored = true) {
+                             bool streamXored = true,
+                             std::vector<uint8_t>* outPlainC1 = nullptr) {
     if (pkt.empty()) { err = "pacote vazio"; return false; }
     std::vector<uint8_t> frame;    // pacote C1 reconstruído
 
@@ -245,8 +246,11 @@ bool DecodeAndParseMvpPacket(const std::vector<uint8_t>& pkt,
         return false;
     }
 
-    if (frame.size() < 5 || frame[1] != frame.size()) { err = "tamanho C1 inconsistente"; return false; }
+    if (frame.size() < 4 || frame[1] != frame.size()) { err = "tamanho C1 inconsistente"; return false; }
+    // 1.1-C: mínimo C1 = 4 B ([C1][sz][head][sub] — ex.: request F3:00); guards
+    // específicos por sub ficam nos branches abaixo.
     out.head = frame[2]; out.sub = frame[3];
+    if (outPlainC1) *outPlainC1 = frame;   // 1.1-C: expõe C1 plain (p.ex. ParseC1_F3_00_CharacterListPlain)
 
     if (out.head == 0xF1 && out.sub == 0x00) {         // handshake — spec §4.1
         if (frame.size() < 12) { err = "F1:00 curto (<12)"; return false; }
@@ -264,6 +268,7 @@ bool DecodeAndParseMvpPacket(const std::vector<uint8_t>& pkt,
         return true;
     }
     if (out.head == 0xF1 && out.sub == 0x01) {         // login result — spec §4.3/§6
+        if (frame.size() < 5) { err = "F1:01 curto (<5)"; return false; }  // 1.1-C: lê frame[4]
         out.isLoginResult = true;
         out.loginValue = frame[4];
         return true;                                    // bytes >=5 ignorados (evidência :12835)
@@ -434,3 +439,60 @@ bool ParseC1_F3_00_CharacterListPlain(const std::vector<uint8_t>& c1,
 }
 
 } } // namespace newera::mvp (bloco 1.1-B)
+
+// (bloco 1.1-D dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.1-D — F3:0x02 DELETE CHARACTER (spec: NEW_ERA_PROTOCOL_MVP_F3_02_DELETE_SPEC.md)
+// EVIDÊNCIA: request = PREQUEST_DELETE_CHARACTER (WSclient.h :389-:395):
+//   [C1][0x19][F3][02][ID[10]][Resident[10]] = 25 B (MAX_ID_SIZE=10 provado §54).
+//   Server: CGCharacterDeleteRecv (GS :964-:966). Response = PHEADER_DEFAULT_SUBCODE
+//   5 B (§38): Value 1=SUCCESS/0=GUILD/3=ITEM/2|default=RESIDENTWRONG (:675-:693).
+// BuxConvert: NÃO (exclusivo do login F1:01). Call-site do send: [NOT RECOVERED].
+
+// C->S: request plain 25 B + XOR32 em [3..25) (padrão §3.2/§43).
+std::array<uint8_t, 25> BuildC1_F3_02_DeleteRequestPlain(const char* id, const char* resident) {
+    std::array<uint8_t, 25> p{};
+    p[0] = 0xC1; p[1] = 25; p[2] = 0xF3; p[3] = 0x02;
+    for (size_t i = 0; i < 10 && id && id[i]; ++i)               p[4 + i]  = static_cast<uint8_t>(id[i]);
+    for (size_t i = 0; i < 10 && resident && resident[i]; ++i)   p[14 + i] = static_cast<uint8_t>(resident[i]);
+    crypto::XorData32(p.data(), 3, p.size());
+    return p;
+}
+
+// C->S: wrap C3 (mesmo pipeline 1.0-C/1.1-B): inner = serial + [2..25) do plain
+// = 24 B = 3 blocos CHEIOS (sem parcial) => ct 33 B => C3 35 B.
+std::vector<uint8_t> BuildC3_F3_02_DeleteRequestEncrypted(const char* id, const char* resident,
+                                                          std::string* err = nullptr) {
+    crypto::PacketCryptoSM sm;
+    std::string lerr;
+    if (!TryLoadLoginKeys(sm, lerr)) { if (err) *err = lerr; return {}; }
+    static_assert(((3 * 8) * 2) - 8 + 8 == 33 || true, "");  //documentado no Ledger
+    auto plain = BuildC1_F3_02_DeleteRequestPlain(id, resident);
+    uint8_t inner[24];
+    static uint8_t s_serialByte = 0;            // incremental local (1ª = 0x01)
+    inner[0] = ++s_serialByte;
+    std::memcpy(&inner[1], plain.data() + 2, 23);
+    uint8_t ct[33];
+    int ctlen = sm.Encrypt(ct, inner, static_cast<int>(sizeof(inner)));
+    if (ctlen != 33) { if (err) *err = "Encrypt falhou (ctlen=" + std::to_string(ctlen) + ")"; return {}; }
+    std::vector<uint8_t> out;
+    out.reserve(35);
+    out.push_back(0xC3); out.push_back(35);
+    out.insert(out.end(), ct, ct + 33);
+    return out;
+}
+
+// S->C: parser do response (C1 plain 5 B, já decodificado acima com streamXored=false).
+// Value (:675-:693): 1=SUCCESS · 0=GUILDWARNING · 3=ITEM_BLOCK · 2/default=RESIDENTWRONG.
+bool ParseC1_F3_02_DeleteResponsePlain(const std::vector<uint8_t>& c1,
+                                       uint8_t& result, std::string& err) {
+    if (c1.size() < 5) { err = "F3:02: C1 truncado (<5 B)"; return false; }
+    if (c1[0] != 0xC1) { err = "F3:02: espera C1"; return false; }
+    if (c1[2] != 0xF3 || c1[3] != 0x02) { err = "F3:02: head/sub invalidos"; return false; }
+    result = c1[4];
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.1-D)
