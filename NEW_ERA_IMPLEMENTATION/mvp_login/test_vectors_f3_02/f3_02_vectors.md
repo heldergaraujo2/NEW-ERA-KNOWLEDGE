@@ -1,6 +1,6 @@
-# F3:0x02 Delete — golden vectors (1.1-D)
+# F3:0x02 Delete — golden vectors (1.2-A2, WIRE-REAL C1)
 
-- REQ C->S (C3, 35 B): `c3231cb6385e17ce83d56d340144021e53cab3741410cbfe0431638586303015d097a2`
-- RESP S->C stub GS-style SEM Xor (C3, 13 B): `c30d0a572a7cd7dac278183009`
-- expected: result=1 (SUCCESS); req id=Hero1 resident=1234567890
-- Chaves: Enc1 (req) / Enc2-derivado=inverso(Dec2) (resp, §48). Serials 0x01.
+- REQ C->S **C1 plain** (34 B, Resident[20]): `c122f3788c5bb6aab810ee58114c442b926d3b805d180a659714ce796502ddb36d30`
+- RESP S->C **C1 plain** (5 B): `c105f30201`
+- expected: result=1 (SUCCESS); id=Hero1 resident=12345678901234567890
+- Wire real: SendRequestDeleteCharacter :310-:320 c/ Send()=FALSE (C1, sem C3/crypto).

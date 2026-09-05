@@ -1,10 +1,9 @@
-// NEW-ERA — loopback_harness.cpp (1.1-D) — F3:0x02 Delete Character
+// NEW-ERA — loopback_harness.cpp (1.2-A2) — F3:0x02 Delete — WIRE-REAL C1
 // Prova end-to-end LOCAL com socket REAL — SOMENTE 127.0.0.1 (hardcode; sem args).
-//   SERVER stub: envia kRespServer (golden) -> recebe request C3 ->
-//                memcmp vs kReqExpected (diff no 1º offset) -> close.
-//   CLIENT MVP : decodifica response (streamXored=false) -> parse result
-//                (assert vs expected_parse: result=1 SUCCESS) -> envia request
-//                do builder REAL (BuildC3_F3_02_DeleteRequestEncrypted, Enc1).
+//   SERVER stub: envia kRespServer (golden C1 5 B) -> recebe request C1 PLAIN
+//                (wire real 34 B c/ Resident[20]) -> memcmp vs kReqExpected -> close.
+//   CLIENT MVP : decodifica response C1 (sem decrypt) -> ParseC1_F3_02 (result=1)
+//                -> envia request do builder WIRE REAL (BuildC1_F3_02_DeleteRequestWire).
 #include "embedded_vectors.h"
 #include "mvp_login_client.cpp"
 
@@ -57,11 +56,11 @@ static void ServerThread(std::promise<int> portPromise) {
     ::close(ls);
     if (c < 0) return;
 
-    printf("[server] conectado; enviando RESP golden (%zu B)\n", loopback_f3d::kRespSize);
+    printf("[server] conectado; enviando RESP golden C1 (%zu B)\n", loopback_f3d::kRespSize);
     if (!SendAll(c, loopback_f3d::kRespServer.data(), loopback_f3d::kRespSize)) { ::close(c); return; }
 
     uint8_t hdr[2];
-    if (!RecvAll(c, hdr, 2) || hdr[0] != 0xC3) { printf("[server] header invalido\n"); ::close(c); return; }
+    if (!RecvAll(c, hdr, 2) || hdr[0] != 0xC1) { printf("[server] header invalido (espera C1 wire real)\n"); ::close(c); return; }
     const size_t rest = (size_t)hdr[1] - 2;
     std::vector<uint8_t> pkt((size_t)hdr[1]);
     pkt[0] = hdr[0]; pkt[1] = hdr[1];
@@ -92,34 +91,29 @@ static bool ClientThread(int port) {
     addr.sin_port = htons((uint16_t)port);
     if (::connect(fd, (sockaddr*)&addr, sizeof(addr)) != 0) { ::close(fd); return false; }
 
-    std::string err;
-    crypto::PacketCryptoSM smRx;   // Dec2
-    if (!smRx.LoadKeysFromFile("NEW_ERA_IMPLEMENTATION/mvp_login/keys/Dec2.dat", &err, /*type=*/1) &&
-        !smRx.LoadKeysFromFile("keys/Dec2.dat", &err, /*type=*/1)) {
-        printf("[client] erro chaves RX: %s\n", err.c_str()); ::close(fd); return false;
-    }
-
-    // 1) response golden -> decode + parse result
+    // 1) response golden C1 -> decode (sem decrypt) + parse result
     std::vector<uint8_t> resp(loopback_f3d::kRespSize);
     if (!RecvAll(fd, resp.data(), resp.size())) { ::close(fd); return false; }
+    crypto::PacketCryptoSM smAny;  // C1: sem crypto
     const uint8_t ver[5] = { 1, 2, 3, 4, 5 };
-    mvp::ParsedMvp out; std::vector<uint8_t> plainC1;
-    if (!mvp::DecodeAndParseMvpPacket(resp, smRx, ver, out, err, /*streamXored=*/false, &plainC1) ||
+    mvp::ParsedMvp out; std::string err; std::vector<uint8_t> plainC1;
+    if (!mvp::DecodeAndParseMvpPacket(resp, smAny, ver, out, err, /*streamXored=*/false, &plainC1) ||
         out.head != 0xF3 || out.sub != 0x02) {
-        printf("[client] decode RESP falhou: %s\n", err.c_str()); ::close(fd); return false;
+        printf("[client] decode RESP falhou\n"); ::close(fd); return false;
     }
     uint8_t result = 0xFF;
     if (!mvp::ParseC1_F3_02_DeleteResponsePlain(plainC1, result, err) ||
         (int)result != loopback_f3d::kExpectedResult) {
-        printf("[client] parse divergente do expected_parse (result=%u)\n", result);
-        ::close(fd); return false;
+        printf("[client] parse divergente (result=%u)\n", result); ::close(fd); return false;
     }
-    printf("[client] decoded RESP: result=%u (SUCCESS)\n", result);
+    printf("[client] decoded RESP C1: result=%u (SUCCESS)\n", result);
 
-    // 2) request C->S com o builder REAL (1ª chamada => serial 0x01 = golden)
-    auto req = mvp::BuildC3_F3_02_DeleteRequestEncrypted(loopback_f3d::kExpectedId, "1234567890", &err);
-    if (req.empty()) { printf("[client] builder falhou: %s\n", err.c_str()); ::close(fd); return false; }
-    printf("[client] sent REQ (%zu B)\n", req.size());
+    // 2) request C->S com o builder WIRE REAL (id + Resident[20])
+    std::array<uint8_t, 20> res{};
+    for (int i = 0; i < 20; ++i) res[i] = static_cast<uint8_t>(loopback_f3d::kExpectedResident[i]);
+    auto req = mvp::BuildC1_F3_02_DeleteRequestWire(loopback_f3d::kExpectedId, res);
+    if (req.empty()) { ::close(fd); return false; }
+    printf("[client] sent REQ wire-real C1 (%zu B)\n", req.size());
     if (!SendAll(fd, req.data(), req.size())) { ::close(fd); return false; }
 
     ::close(fd);
@@ -138,6 +132,6 @@ int main() {
     server.join();
     if (!cli)        { printf("FALHA: client\n"); return 3; }
     if (!g_serverOk) { printf("FALHA: server\n"); return 4; }
-    printf("LOOPBACK F3:02 OK: RESP(result=1)->REQ(match)\n");
+    printf("LOOPBACK F3:02 WIRE OK: RESP-C1(result=1)->REQ-C1-wire-Resident20(match)\n");
     return 0;
 }

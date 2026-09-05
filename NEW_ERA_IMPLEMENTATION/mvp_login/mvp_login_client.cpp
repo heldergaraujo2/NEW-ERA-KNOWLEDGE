@@ -461,7 +461,23 @@ namespace newera { namespace mvp {
 //   5 B (§38): Value 1=SUCCESS/0=GUILD/3=ITEM/2|default=RESIDENTWRONG (:675-:693).
 // BuxConvert: NÃO (exclusivo do login F1:01). Call-site do send: [NOT RECOVERED].
 
-// C->S: request plain 25 B + XOR32 em [3..25) (padrão §3.2/§43).
+// C->S: request plain 25 B + XOR32 em [3..25) — [DEPRECATED 1.2-A2]: formato
+// struct (Resident[10]); o WIRE REAL e 34 B c/ Resident[20] (usar ...RequestWire).
+// C->S: request WIRE REAL (1.2-A2) = SendRequestDeleteCharacter (wsclientinline
+// :310-:320): Init(C1,F3)<<0x02; ID zero-padded p/ MAX_ID_SIZE=10; AddData(resident,20);
+// Send() default FALSE (:120) => C1 PLAIN 34 B: [C1][22][F3][02][ID10][Resident20]
+// + Xor32 encadeado em [3..34). Wire manda Resident[20] (struct :394 diz 10 — wire
+// é autoritativo).
+std::vector<uint8_t> BuildC1_F3_02_DeleteRequestWire(const std::string& id10,
+                                                     const std::array<uint8_t, 20>& resident20) {
+    std::vector<uint8_t> p(34, 0);
+    p[0] = 0xC1; p[1] = 34; p[2] = 0xF3; p[3] = 0x02;
+    for (size_t i = 0; i < 10 && i < id10.size(); ++i) p[4 + i] = static_cast<uint8_t>(id10[i]);
+    std::memcpy(&p[14], resident20.data(), 20);
+    crypto::XorData32(p.data(), 3, p.size());
+    return p;
+}
+
 std::array<uint8_t, 25> BuildC1_F3_02_DeleteRequestPlain(const char* id, const char* resident) {
     std::array<uint8_t, 25> p{};
     p[0] = 0xC1; p[1] = 25; p[2] = 0xF3; p[3] = 0x02;

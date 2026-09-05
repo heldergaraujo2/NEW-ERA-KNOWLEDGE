@@ -354,12 +354,18 @@
   ⭐FIX CORE: unXor agora vale também para C1 direto (gap pego pelo
   roundtrip; regressão login/f3_00/f3_02 re-rodada VERDE). Binários
   removidos. [LEDGER §61].
-- **1.2-A1 (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **wire-real fix
+- **1.2-A1 (2026-09-05)**: **wire-real fix
   F3:0x00 CharList (byLanguage + C1 plain) OK (exit 0×2)** — spec própria
   `NEW_ERA_PROTOCOL_MVP_F3_00_CHARLIST_SPEC.md` (REQ wire = C1 5 B
   [C1][05][F3][00][byLanguage] :288-:296 Send()=FALSE); golden+loopback
   REGENERADOS em C1↔C1 (gerador sem crypto; builders C3 marcados
   DEPRECATED). [LEDGER §62].
+- **1.2-A2 (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **wire-real fix
+  F3:0x02 Delete (C1 + Resident[20]) OK (exit 0×2)** — spec própria
+  `NEW_ERA_PROTOCOL_MVP_F3_02_DELETE_WIREREAL_SPEC.md` (REQ wire = C1 34 B
+  [C1][22][F3][02][ID10][Resident20] :310-:320; divergência struct×wire
+  documentada); golden+loopback regenerados C1↔C1 sem crypto; builders
+  antigos DEPRECATED. [LEDGER §63].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -370,9 +376,10 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.2-A2 — wire-real fix F3:0x02 Delete** (Resident[20] no wire :318 +
-  C1 plain 32 B; regenerar golden/loopback em C1). Depois: avaliar F3:30/52
-  em C1 wire (option 34 B já é o payload real; 52 já está no wire).
+1. **Revisão F3:30 wire-real**: o envio real já é C1 plain 34 B
+  (SendRequestHotKey :1597-:1603) mas o golden 1.1-E é C3 — regenerar em C1
+  (1.2-A3, simétrico a A1/A2). F3:52 já está no wire (1.1-F). Depois:
+  **F3:01 create / F3:03 join-map / F3:06 add-point** (req 1 byte :1193).
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —
