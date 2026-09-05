@@ -328,7 +328,7 @@
   golden; client parse count=1/name/level). Core: +`outPlainC1` param,
   guard RX `<4` (bug latente: C1 de 4 B rejeitado), guard F1:01<5.
   **Binários removidos pós-sucesso** (workspace ~4,6 MB). [LEDGER §57].
-- **1.1-D (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **F3:0x02 Delete
+- **1.1-D (2026-09-05)**: **F3:0x02 Delete
   completo (spec+impl+golden+loopback, exit 0×2)** — spec
   `NEW_ERA_PROTOCOL_MVP_F3_02_DELETE_SPEC.md` (request C1 25 B
   ID[10]+Resident[10] :389-:395; response 5 B result 1/0/3/2 :675-:693);
@@ -336,6 +336,16 @@
   `test_vectors_f3_02/` + loopback `loopback_f3_02/` (server memcmp match;
   client result=1 SUCCESS). **Binários removidos** (workspace ~4,6 MB).
   [LEDGER §58].
+- **1.1-E (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **F3:0x30 Option
+  completo (spec+impl+golden+loopback, exit 0×2)** — spec
+  `NEW_ERA_PROTOCOL_MVP_F3_30_OPTION_SPEC.md` (request C1 34 B c/
+  option[30] :1597-:1603; response PRECEIVE_OPTION 34 B c/ HotKey swap
+  :9398); golden `test_vectors_f3_30/` + loopback `loopback_f3_30/`
+  (hotKey0=0x1234/9 vazias/gameOption/qwer=100; REQ C3 57 B match; parcial
+  de 1 B exercitado). ⭐Descobertas §60: **Send() default=FALSE ⇒ requests
+  F3 reais vão C1 PLAIN** (C3 golden = convenção de teste); charlist real
+  leva +byLanguage; delete real usa Resident[20]; F3:52 req = int32.
+  Binários removidos. [LEDGER §60].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -346,11 +356,10 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.1-E — próximo subcode F3 comum (escolha: 0x30 OPTION ou 0x52
-  MASTER-SKILL)** — recomendação: **0x30** (struct 34 B completa no
-  WSclient.h :1205-:1215; handler RX ReceiveOption :9388; TX CGOptionDataRecv
-  :991 — par simétrico com payload). Mesmo ciclo: spec → impl → golden →
-  loopback → prune.
+1. **1.1-F — F3:0x52 MasterSkill** (request = int32 SkillNum :2286-:2292;
+  response PMSG_ANS_MASTERLEVEL_SKILL 15 B :2860-:2868 — ambos já mapeados
+  §52/§60). Baixo custo. Obs.: correção de formatos wire-real (C1 plain +
+  byLanguage + Resident[20]) fica a comando explícito, se desejado.
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

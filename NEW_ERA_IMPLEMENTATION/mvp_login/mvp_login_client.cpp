@@ -496,3 +496,75 @@ bool ParseC1_F3_02_DeleteResponsePlain(const std::vector<uint8_t>& c1,
 }
 
 } } // namespace newera::mvp (bloco 1.1-D)
+
+// (bloco 1.1-E dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.1-E — F3:0x30 OPTION DATA (spec: NEW_ERA_PROTOCOL_MVP_F3_30_OPTION_SPEC.md)
+// EVIDÊNCIA: request = SendRequestHotKey (wsclientinline.h :1597-:1603):
+//   Init(C1,F3)<<0x30; AddData(option,30) => [C1][22][F3][30][option[30]] = 34 B.
+//   Send() default bEncrypt=FALSE (StreamPacketEngine.h :120) => wire real = C1
+//   PLAIN; o C3 NEW-ERA é convenção de teste do pipeline (spec §2, Ledger §60).
+// Response = PRECEIVE_OPTION (WSclient.h :1204-:1215, pack(1)): 34 B; HotKey =
+// 10 WORDs com par TROCADADO (MAKEWORD(HotKey[2i+1],HotKey[2i]) :9398; 0xFFFF
+// = vazio); GameOption bits :9413-:9435.
+
+// C->S: request plain 34 B + XOR32 em [3..34) (AddData encadeia — §3.2/§43).
+std::array<uint8_t, 34> BuildC1_F3_30_OptionRequestPlain(const uint8_t option[30]) {
+    std::array<uint8_t, 34> p{};
+    p[0] = 0xC1; p[1] = 34; p[2] = 0xF3; p[3] = 0x30;
+    std::memcpy(&p[4], option, 30);
+    crypto::XorData32(p.data(), 3, p.size());
+    return p;
+}
+
+// C->S: wrap C3 (padrão NEW-ERA): inner = serial + [2..34) = 33 B
+// (4 blocos cheios + parcial de 1 B) => ct 55 => C3 57 B.
+std::vector<uint8_t> BuildC3_F3_30_OptionRequestEncrypted(const uint8_t option[30],
+                                                          std::string* err = nullptr) {
+    crypto::PacketCryptoSM sm;
+    std::string lerr;
+    if (!TryLoadLoginKeys(sm, lerr)) { if (err) *err = lerr; return {}; }
+    auto plain = BuildC1_F3_30_OptionRequestPlain(option);
+    uint8_t inner[33];
+    static uint8_t s_serialByte = 0;            // incremental local (1ª = 0x01)
+    inner[0] = ++s_serialByte;
+    std::memcpy(&inner[1], plain.data() + 2, 32);
+    uint8_t ct[55];
+    int ctlen = sm.Encrypt(ct, inner, static_cast<int>(sizeof(inner)));
+    if (ctlen != 55) { if (err) *err = "Encrypt falhou (ctlen=" + std::to_string(ctlen) + ")"; return {}; }
+    std::vector<uint8_t> out;
+    out.reserve(57);
+    out.push_back(0xC3); out.push_back(57);
+    out.insert(out.end(), ct, ct + 55);
+    return out;
+}
+
+// S->C: parser do response (C1 plain 34 B; decode acima com streamXored=false).
+struct ParsedOption {
+    uint16_t hotKeys[10];   // valor = c1[4+2i+1] | (c1[4+2i]<<8)  (:9398 — par trocado)
+    uint8_t  gameOption;    // bits AUTOATTACK/WHISPER_SOUND/SLIDE_HELP (:9413-:9435)
+    uint8_t  keyQWE[3];
+    uint8_t  chatLogBox;
+    uint8_t  keyR;
+    int32_t  qwerLevel;     // int LE (:1214)
+};
+
+bool ParseC1_F3_30_OptionResponsePlain(const std::vector<uint8_t>& c1,
+                                       ParsedOption& out, std::string& err) {
+    if (c1.size() < 34) { err = "F3:30: C1 truncado (<34 B)"; return false; }
+    if (c1[0] != 0xC1) { err = "F3:30: espera C1"; return false; }
+    if (c1[2] != 0xF3 || c1[3] != 0x30) { err = "F3:30: head/sub invalidos"; return false; }
+    for (int i = 0; i < 10; ++i) {                 // :9398 MAKEWORD(HotKey[2i+1], HotKey[2i])
+        out.hotKeys[i] = static_cast<uint16_t>((c1[4 + 2 * i] << 8) | c1[5 + 2 * i]);
+    }
+    out.gameOption  = c1[24];
+    std::memcpy(out.keyQWE, &c1[25], 3);
+    out.chatLogBox  = c1[28];
+    out.keyR        = c1[29];
+    std::memcpy(&out.qwerLevel, &c1[30], 4);
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.1-E)

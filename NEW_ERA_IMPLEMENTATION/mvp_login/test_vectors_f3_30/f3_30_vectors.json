@@ -1,0 +1,7 @@
+{
+  "caso": "F3_30_option",
+  "req_c3_hex": "c3396a22337fdc0ae04c382d18472942014793d21318c9fc10d6021b151a100cc5f6c3c92c20ffad4532857430059e801853d22ba00b54605c",
+  "resp_c3_hex": "c339cfd81eeddba4413895d6e3ead724ad802d175860cdf8ead724ad858ea6308d97a2ba71081243fef46c44e9dc451b0d0f125202d4d8c4f8",
+  "expected_parse": { "hotKey0": 4660, "hotKeysEmpty": 9,
+    "gameOption": 165, "keyQWE": "QWE", "chatLogBox": 1, "keyR": 2, "qwerLevel": 100 }
+}
