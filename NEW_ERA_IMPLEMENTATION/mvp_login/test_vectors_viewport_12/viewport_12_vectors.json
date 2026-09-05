@@ -1,0 +1,8 @@
+{
+  "caso": "viewport_character_c2_0x12",
+  "resp_c2_hex": "c2004f120201000a1403000102030405060708090a0b0c0d0e0f104865726f4100000000000b15130002001e2801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4865726f4200000000001f2920025566",
+  "expected_parse": [
+    { "key": 256, "id": "HeroA", "x": 10, "y": 20, "class": 3, "pose": 3, "dir": 1, "pk": 3, "angleDeg": 0, "buffs_len": 0, "buffs_bytes": [], "equip_first_last": [ 0, 16 ] },
+    { "key": 512, "id": "HeroB", "x": 30, "y": 40, "class": 1, "pose": 1, "dir": 2, "pk": 0, "angleDeg": 45, "buffs_len": 2, "buffs_bytes": [ 85, 102 ], "equip_first_last": [ 170, 170 ] }
+  ]
+}

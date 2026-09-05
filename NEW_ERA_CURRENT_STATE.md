@@ -415,7 +415,7 @@
   (key=0x0123/type=0x02AA/x=100/y=200/dir=2→45°); parser
   `ParseC2_ViewportMonsterSpawnPlain` + `SpawnEntity`. Binários removidos.
   [LEDGER §69].
-- **1.3-F (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **viewport 0x13
+- **1.3-F (2026-09-05)**: **viewport 0x13
   buffs/stride variável completo (spec§BUFFS + harden + golden + loopback,
   exit 0×2)** — C2 29 B c/ 2 entidades (strides **11/13** provados no wire,
   fórmula :2710); buffs validados byte-a-byte em `SpawnEntity.buffs`
@@ -423,6 +423,16 @@
   (`kViewportMaxBuffSlotIndex`; :599/:613); negativos (truncado/resíduo).
   Spec 5.350 B c0ed6474… · core 50.352 B 78c4e2bb… SYNTAX OK. Binários
   removidos. [LEDGER §70].
+- **1.3-G (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **viewport 0x12
+  characters completo (spec+impl+golden+loopback, exit 0×2, C2)** — spec
+  `NEW_ERA_PROTOCOL_MVP_VIEWPORT_CHARACTER_SPEC.md` (classe (1): handler
+  :2167-:2380; PCREATE_CHARACTER :537-:550 c/ Equipment[17] :71, ID[10],
+  **Path dual dir/PK** :2237/:2271, Class&0x07=pose :2240-:2264; stride 36+n
+  :2376). Golden C2 **79 B** (2 entidades strides 36/38; NOTA anti-invenção:
+  TotalSize 115 do comando divergia da soma 4+1+36+38=79 — parser rejeitou o
+  frame de 115 e o valor foi corrigido pela evidência). Parser
+  `ParseViewportCharacterSpawnPlain_C2` + `SpawnCharacter`. Binários
+  removidos. [LEDGER §71].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -433,10 +443,11 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-G — viewport 0x12 CreateCharacterViewport** (decisão do usuário:
-   ver player/NPC no mundo) — handler `ReceiveCreatePlayerViewport` :2167-:2379
-   (recebe `Size` do dispatcher :13100-:13103 — indicio de layout variável);
-   levantar struct/cast/loop + framing C1×C2 antes de implementar.
+1. **1.3-H — MVP loop de world tick** (decisão do usuário): consumir
+   **0x12+0x13 em sequência** e manter um **WorldState** com mapa de entities
+   (players/monstros por key; spawn/delete/move) — primeiro passo de "mundo
+   vivo" agregando os parsers já provados (0x12 §71, 0x13 §69/§70; candidatos
+   seguintes: 0x14 delete :13116-:13119, PACKET_MOVE/POSITION :13094-:13099).
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

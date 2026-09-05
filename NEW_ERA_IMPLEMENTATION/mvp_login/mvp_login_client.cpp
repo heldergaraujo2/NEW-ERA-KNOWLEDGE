@@ -998,3 +998,105 @@ bool ParseC2_ViewportMonsterSpawnPlain(const std::vector<uint8_t>& pkt,
 }
 
 } } // namespace newera::mvp (bloco 1.3-E)
+
+// (bloco 1.3-G dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-G — VIEWPORT CHARACTER SPAWN — HeadCode 0x12 ReceiveCreatePlayerViewport
+// — wire-real per spec 1.3-G (NEW_ERA_PROTOCOL_MVP_VIEWPORT_CHARACTER_SPEC.md).
+// EVIDÊNCIA: dispatch case 0x12 (:13100-:13103, passa Size só p/ AddDebugText
+// :2244 — parse 100% por struct); handler :2167-:2380. Framing C2 (cast
+// LPPWHEADER_DEFAULT_WORD :2169; PWMSG_HEADER :83-:89): header 5 B
+// [C2][SizeH][SizeL][0x12][count BYTE :202]. Entidade = PCREATE_CHARACTER
+// (H :537-:550): KeyH/KeyL (BE; b15 CreateFlag :2176; &0x7FFF :2177),
+// PositionX/Y, Class (server type :2235; &0x07 = pose/action 1=teleport/
+// 2=sit/3=pose/4=healing :2240-:2264), Equipment[17] (EQUIPMENT_LENGTH=17
+// H:71; opaco -> ChangeCharacterExt :2320), ID[10] (MAX_ID_SIZE=10 define
+// :305), TargetX/Y (:2282), Path DUAL (dir=Path>>4 c/ ((dir-1)*45) :2271;
+// PK=Path&0xF :2237), s_BuffCount + buffs (:2361-:2368, limite 16 :613).
+// STRIDE: sizeof(PCREATE_CHARACTER)=52; Offset += 52-(16-n) = 36+n (:2376).
+// Min frame 41 B (5+36). Sem TX (S→C).
+
+// 1.3-G: dimensões provadas (H :537-:550, :71; define :305/:613)
+static constexpr size_t kCharEquipLength   = 17;  // EQUIPMENT_LENGTH (H :71)
+static constexpr size_t kCharIdSize        = 10;  // MAX_ID_SIZE (define :305)
+static constexpr size_t kCharFixedEntity   = 36;  // 2+2+1+17+10+2+1+1 (struct)
+static constexpr uint8_t kCharMaxBuffSlots = 16;  // MAX_BUFF_SLOT_INDEX (:613)
+
+// S->C: 1 player/NPC de viewport (somente campos provados).
+struct SpawnCharacter {
+    uint16_t key;         // BE &0x7FFF :2175/:2177
+    char     id[11];      // ID[10]+NUL :2353-:2354
+    uint8_t  classByte;   // tipo server (:2235 converte p/ client)
+    uint8_t  poseAction;  // Class&0x07: 1 teleport/2 sit/3 pose/4 healing
+    uint8_t  x, y;        // :2231/:2266
+    uint8_t  targetX, targetY;  // :2282
+    uint8_t  dir;         // Path>>4 :2271
+    uint8_t  pk;          // Path&0xF :2237
+    int      angleDeg;    // ((dir-1)*45) :2271
+    bool     createFlag;  // Key b15 :2176
+    uint8_t  equipment[kCharEquipLength];  // raw opaco (ChangeCharacterExt)
+    std::vector<uint8_t> buffs;            // s_BuffEffectState[0..n) :2361
+};
+
+bool ParseViewportCharacterSpawnPlain_C2(const std::vector<uint8_t>& pkt,
+                                         std::vector<SpawnCharacter>& out,
+                                         std::string& err) {
+    out.clear();
+    if (pkt.size() < 5) { err = "0x12: C2 truncado (<5 B)"; return false; }
+    if (pkt[0] != 0xC2) { err = "0x12: espera C2 (PWMSG_HEADER :83-:89)"; return false; }
+    const size_t declared = ((size_t)pkt[1] << 8) | pkt[2];    // SizeH<<8|SizeL
+    if (declared != pkt.size()) {
+        err = "0x12: tamanho C2 inconsistente (declared " + std::to_string(declared) +
+              " != total " + std::to_string(pkt.size()) + ")";
+        return false;
+    }
+    if (pkt[3] != 0x12) { err = "0x12: head invalido"; return false; }
+    const size_t count = pkt[4];                               // count BYTE :202
+    size_t off = 5;                                            // sizeof(PWHEADER_DEFAULT_WORD)
+    out.reserve(count);
+    for (size_t i = 0; i < count; ++i) {
+        if (off + kCharFixedEntity > pkt.size()) {
+            err = "0x12: entidade " + std::to_string(i) + " truncada (<36 B)";
+            out.clear(); return false;
+        }
+        SpawnCharacter e{};
+        const uint8_t keyH = pkt[off], keyL = pkt[off + 1];
+        const uint16_t keyRaw = (uint16_t)(((uint16_t)keyH << 8) | keyL);  // BE :2175
+        e.createFlag = (keyRaw >> 15) != 0;                                // :2176
+        e.key        = keyRaw & 0x7FFF;                                    // :2177
+        e.x = pkt[off + 2]; e.y = pkt[off + 3];                            // :2231
+        e.classByte = pkt[off + 4];                                        // :2235
+        e.poseAction = (uint8_t)(e.classByte & 0x07);                      // :2240
+        std::memcpy(e.equipment, &pkt[off + 5], kCharEquipLength);         // :2320 (opaco)
+        std::memcpy(e.id, &pkt[off + 22], kCharIdSize);                    // :2353
+        e.id[kCharIdSize] = '\0';
+        e.targetX = pkt[off + 32]; e.targetY = pkt[off + 33];              // :2282
+        const uint8_t path = pkt[off + 34];                                // :2237/:2271
+        e.dir = path >> 4;
+        e.pk  = path & 0x0F;
+        e.angleDeg = ((int)e.dir - 1) * 45;                                // :2271
+        const uint8_t nBuffs = pkt[off + 35];                              // :2361
+        if (nBuffs > kCharMaxBuffSlots) {
+            err = "0x12: entidade " + std::to_string(i) + " s_BuffCount=" +
+                  std::to_string(nBuffs) + " > MAX_BUFF_SLOT_INDEX (16) :613";
+            out.clear(); return false;
+        }
+        if (off + kCharFixedEntity + nBuffs > pkt.size()) {
+            err = "0x12: entidade " + std::to_string(i) + " buffs truncados";
+            out.clear(); return false;
+        }
+        e.buffs.assign(pkt.begin() + off + kCharFixedEntity,
+                       pkt.begin() + off + kCharFixedEntity + nBuffs);
+        off += kCharFixedEntity + (size_t)nBuffs;                          // stride :2376
+        out.push_back(std::move(e));
+    }
+    if (off != pkt.size()) {
+        err = "0x12: bytes residuos (" + std::to_string(pkt.size() - off) + ")";
+        out.clear(); return false;
+    }
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-G)
