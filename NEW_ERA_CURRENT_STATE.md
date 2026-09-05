@@ -494,7 +494,7 @@
   `kProto_BOTH_POSITION` + `ParseBOTH_POSITION_Asio` +
   `ApplyFrame_BOTH_POSITION_Asio(&missed)`. Binários removidos.
   [LEDGER §76].
-- **1.3-M (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **Damage RX completo
+- **1.3-M (2026-09-05)**: **Damage RX completo
   (spec+impl+golden+loopback, exit 0×2) — 1º COMBAT SIGNAL + TÚNEL
   BOTH_MESSAGE provados** — PACKET_ATTACK=0x11 (wsclientinline :26);
   dispatch :13143-:13144 → ReceiveAttackDamage :2984-:3191; PRECEIVE_ATTACK
@@ -511,6 +511,21 @@
   `ExtractClassicFromBothMessage_Asio` +
   `ApplyFrame_BOTH_MESSAGE_Tunnel_DamageOnly`. Two-TU (espelho ODR)
   retomado. Binários removidos. [LEDGER §77].
+- **1.3-N (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **Attack TX completo
+  (spec+impl+golden+loopback, exit 0×2) — 1º TX DE COMBATE + ciclo mínimo
+  REQ→RESP fechado** — macro SendRequestAttack (wsclientinline :518-:527):
+  `spe.Init(0xC1, 0x11)` + Key BE **sem máscara** + **AT_ATTACK1=0x78**
+  (enum_h :1497) + Dir ⇒ **C1 7 B fixo** [C1][07][11][KeyH][KeyL][78][Dir];
+  Send() defaults ⇒ C1 plain (não C3); head 0x11 bidirecional (TX payload
+  4 B ≠ RX 7 B). GS: case PROTOCOL_CODE2 :112-:113 → gAttack.CGAttackRecv
+  (PMSG_ATTACK_RECV/valor [NOT RECOVERED]; correlação forte 0x11).
+  Transporte: C1 direto (SendPacketClassic :146; wrapper C→S C1→0x000C
+  NÃO existe — túnel é RX; helper de framing p/ experimentação).
+  Ciclo provado: builder → 7 B exatos `c1071101017803` → server memcmp
+  golden → RESP damage 10 B (golden 1.3-M reutilizado) → lastDamage=0x0123.
+  `kAt_ATTACK1` + `BuildC1_AttackRequestWire` +
+  `BuildAsio_BOTH_MESSAGE_FromClassicC1`. Binários removidos.
+  [LEDGER §78].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -521,10 +536,10 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-N (decisão do usuário, 2026-09-05)**: **TX mínimo de ataque/skill** —
-   escolher o menor request C→S do WSclientinline (attack/skill TX do
-   cliente; mesma metodologia: evidência → spec → core → golden/loopback;
-   incluir TX olc BOTH_ATTACK1-3 0x0008/0x0009/0x000A quando mapeado).
+1. **1.3-O (decisão do usuário, 2026-09-05)**: **skill TX mínimo (0xDB
+   SendRequestMagicAttack) OU ack/anim do attack no viewport** — escolher
+   O QUE FOR MAIS SIMPLES na fase de evidência (critério explícito do
+   usuário; decidir com os arquivos abertos e registrar a escolha na spec).
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

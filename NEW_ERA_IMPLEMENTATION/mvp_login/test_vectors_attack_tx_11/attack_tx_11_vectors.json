@@ -1,0 +1,7 @@
+{
+  "caso": "attack_tx_0x11_req_resp",
+  "req_c1_hex": "c1071101017803",
+  "resp_damage_c1_hex": "c10a1181000123c50044",
+  "expected": { "req_targetKey": 257, "req_targetKey_hex": "0x0101", "req_dir": 3, "at_attack1": 120, "resp_key": 256, "resp_key_hex": "0x0100", "lastDamage": 291, "lastDamage_hex": "0x0123", "missed": 0 },
+  "fonte_resp": "test_vectors_damage_11/damage_11_vectors.json#attack_ok_c1_hex"
+}

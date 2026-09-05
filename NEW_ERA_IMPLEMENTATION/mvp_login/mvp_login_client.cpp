@@ -1594,3 +1594,73 @@ bool ApplyFrame_BOTH_MESSAGE_Tunnel_DamageOnly(const std::vector<uint8_t>& frame
 }
 
 } } // namespace newera::mvp (bloco 1.3-M)
+
+// (bloco 1.3-N dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-N — ATTACK TX — SendRequestAttack (C1 PACKET_ATTACK 0x11, C->S) —
+// per spec 1.3-N (NEW_ERA_PROTOCOL_MVP_ATTACK_TX_SPEC.md).
+// EVIDÊNCIA: macro SendRequestAttack (wsclientinline.h :518-:527):
+//   spe.Init(0xC1, PACKET_ATTACK=0x11 :26);
+//   spe << (BYTE)(Key>>8) << (BYTE)(Key&0xff) << (BYTE)AT_ATTACK1 << (BYTE)Dir;
+//   spe.Send()  // defaults bEncrypt=FALSE (C1 plain, NÃO C3), bForceC4=FALSE
+// AT_ATTACK1 = 120 = 0x78 (enum_h :1497; AT_ATTACK2=121). Key BE SEM máscara
+// no TX (shift puro :524). Guard "webzen" :520 documentado (sem efeito no
+// layout). Head 0x11 é BIDIRECIONAL: RX = PRECEIVE_ATTACK 7 B payload
+// (1.3-M); TX = 4 B payload (este builder). TRANSPORTE: spe.Send() ->
+// global SendPacket [NOT RECOVERED] (path clássico); SendPacketClassic
+// (ProtocolSend.h :146) prova bytes clássicos crus na connection olc;
+// wrapper C->S C1->0x000C NÃO evidenciado (túnel BOTH_MESSAGE é RX).
+// GS: case PROTOCOL_CODE2 -> gAttack.CGAttackRecv (GS_Protocol.cpp :112-:113;
+// PMSG_ATTACK_RECV/valor [NOT RECOVERED]; correlação forte 0x11).
+static constexpr uint8_t kAt_ATTACK1 = 0x78;   // 120 (enum_h :1497)
+
+// C->S: builder wire-real do request de normal attack (C1 7 B fixo).
+// Key é enviado CRU (sem máscara — fiel à macro :524); dir = byte do golpe.
+bool BuildC1_AttackRequestWire(uint16_t targetKey, uint8_t dir,
+                                std::vector<uint8_t>& out, std::string& err) {
+    out.clear();
+    out.reserve(7);
+    out.push_back(0xC1);                              // spe.Init(:29)
+    out.push_back(0x07);                              // size C1 = 3+4
+    out.push_back(0x11);                              // PACKET_ATTACK (:26)
+    out.push_back((uint8_t)(targetKey >> 8));         // KeyH (>>8 :524)
+    out.push_back((uint8_t)(targetKey & 0xFF));       // KeyL (&0xff :524)
+    out.push_back(kAt_ATTACK1);                       // AT_ATTACK1=0x78
+    out.push_back(dir);                               // Dir (:524)
+    if (out.size() != 7) {                            // bounds-check (paranoia)
+        err = "0x11 TX: builder interno inconsistente (" +
+              std::to_string(out.size()) + " B; espera 7)";
+        out.clear();
+        return false;
+    }
+    return true;
+}
+
+// Utilitário de FRAMING olc 0x000C (BOTH_MESSAGE) com inner clássico C1.
+// Formato provado no RX (ProtocolSend.cpp :99-:137); uso C->S NÃO evidenciado
+// — helper fornecido para experimentação futura, NÃO usar como wire-real TX.
+bool BuildAsio_BOTH_MESSAGE_FromClassicC1(const std::vector<uint8_t>& innerC1,
+                                          std::vector<uint8_t>& out,
+                                          std::string& err) {
+    if (innerC1.size() < 3 || innerC1[0] != 0xC1) {
+        err = "0x000C TX: inner deve ser C1 valido (>=3 B c/ [0]=0xC1; got " +
+              std::to_string(innerC1.size()) + " B)";
+        return false;
+    }
+    if (innerC1.size() > 0xFFFF) {                    // guarda u16-agnostic
+        err = "0x000C TX: inner grande demais (" + std::to_string(innerC1.size()) + " B)";
+        return false;
+    }
+    out.clear();
+    out.reserve(6 + innerC1.size());
+    const uint16_t id = kProto_BOTH_MESSAGE;          // 0x000C
+    const uint32_t sz = (uint32_t)innerC1.size();
+    for (int i = 0; i < 2; ++i) out.push_back((uint8_t)((id >> (8 * i)) & 0xFF)); // u16 LE
+    for (int i = 0; i < 4; ++i) out.push_back((uint8_t)((sz >> (8 * i)) & 0xFF)); // u32 LE
+    out.insert(out.end(), innerC1.begin(), innerC1.end());
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-N)
