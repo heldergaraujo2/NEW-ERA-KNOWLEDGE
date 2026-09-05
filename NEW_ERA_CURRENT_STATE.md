@@ -395,7 +395,7 @@
   response (callback DG) + macro spe do request clássico 14 B. Spec
   `NEW_ERA_PROTOCOL_MVP_JOIN_GAME_SPEC.md` (classificação (2) parcial).
   Binários removidos. [LEDGER §67].
-- **1.3-D (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **research encerrada
+- **1.3-D (2026-09-05)**: **research encerrada
   (sem MVP): F3:E0 é extra do GS e NÃO é consumido pelo client upstream** —
   GCNewCharacterInfoSend :3411-:3461 (`header.set(0xF3,0xE0,…)` :3417;
   DataSend :3458; 36 campos :3419-:3456; struct [NOT RECOVERED]; irmão
@@ -404,6 +404,17 @@
   `NEW_ERA_PROTOCOL_MVP_POSTJOIN_SELFINFO_SPEC.md` (classe (2)) + validador
   header-only payload-opaco no core (`ParseC1_F3_E0_SelfInfoResponsePlain`,
   SYNTAX OK; sem TX). [LEDGER §68].
+- **1.3-E (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **viewport spawn 0x13
+  completo (spec+impl+golden+loopback, exit 0×2, C2) — 1ª ENTIDADE VISÍVEL do
+  MVP** — spec `NEW_ERA_PROTOCOL_MVP_VIEWPORT_SPAWN_SPEC.md` (classe (1):
+  HeadCode 0x13 S→C, framing C2 provado pelo cast :2587/PWMSG_HEADER :83-:89;
+  count BYTE :202; entidade PCREATE_MONSTER :588-:600 c/ stride variável
+  10+s_BuffCount :2710 e MAX_BUFF_SLOT_INDEX=16; Key BE &0x7FFF + flags b15/
+  0x40; Type 10-bit + myMob/buildTime; dir=Path>>4 :2637). Anti-invenção:
+  "ViewPortNumber" do exemplo NÃO EXISTE na struct. Golden C2 15 B
+  (key=0x0123/type=0x02AA/x=100/y=200/dir=2→45°); parser
+  `ParseC2_ViewportMonsterSpawnPlain` + `SpawnEntity`. Binários removidos.
+  [LEDGER §69].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -414,13 +425,11 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-E — viewport/spawn básico (1 entidade)** (a definir em comando
-   próprio): primeiro pacote de criação de entidades visíveis consumido por
-   ESTE client pós-join (candidatos dos cases reais: **0x12 create
-   characters / 0x13/0x1F/0x45 create monsters** no head-level switch
-   WSclient.cpp :13100-:13112 — a investigar). Pendências herdadas
-   (não bloqueiam): struct PMSG_NEW_CHARACTER_INFO_SEND (F3:E0, EXTRA),
-   sender GS do response F3:03, macro spe do request clássico.
+1. **1.3-F — A DEFINIR PELO USUÁRIO** (decisão registrada): (a) viewport
+   **0x12 create character viewport** (spawn de players — ReceiveCreatePlayerViewport
+   :2167-:2379, recebe Size do dispatcher), OU (b) **spawn com buffs (stride
+   variável)** no 0x13 para fechar MAX_BUFF_SLOT_INDEX=16 no parser (entidades
+   com s_BuffCount>0 + RegisterBuff :2614-:2619).
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

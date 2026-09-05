@@ -900,3 +900,90 @@ bool ParseC1_F3_E0_SelfInfoResponsePlain(const std::vector<uint8_t>& c1,
 }
 
 } } // namespace newera::mvp (bloco 1.3-D)
+
+// (bloco 1.3-E dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-E — VIEWPORT SPAWN — HeadCode 0x13 ReceiveCreateMonsterViewport —
+// wire-real per spec 1.3-E (NEW_ERA_PROTOCOL_MVP_VIEWPORT_SPAWN_SPEC.md).
+// EVIDÊNCIA: dispatch case 0x13 (WSclient.cpp :13104-:13107) -> handler
+// :2585-:2712. Framing C2 PROVADO pelo cast LPPWHEADER_DEFAULT_WORD (:2587)
+// sobre PWMSG_HEADER{Code;SizeH;SizeL;HeadCode} 4 B (WSclient.h :83-:89;
+// PBMSG_HEADER 3 B = C1 :76-:81) — buffer C1 seria misparseado.
+// Header 5 B [C2][SizeH][SizeL][0x13][count BYTE (:202 — apesar do nome
+// "_WORD")]; entidade = PCREATE_MONSTER (H :588-:600) com STRIDE VARIÁVEL
+// 10+s_BuffCount (:2710 — array declarado [MAX_BUFF_SLOT_INDEX=16] :599/:613,
+// no wire só viajam s_BuffCount bytes). Key/Type BIG-ENDIAN c/ bits de flag:
+// Key=(KeyH<<8)|KeyL &0x7FFF :2592/:2605 (CreateFlag=b15 :2602,
+// TeleportFlag=KeyH.0x40 :2603); Type 10 bits :2597 (bMyMob=TypeH.0x80
+// :2595, buildTime=(TypeH&0x70)>>4 :2596); dir=Path>>4 :2637 com ângulo
+// ((dir-1)*45) :2637. CreateMonster(Type,X,Y,Key) :2606; buffs -> RegisterBuff
+// :2616; TargetX/Y -> PathFinding2 :2701. Sem TX (S→C).
+
+// S->C: 1 entidade de viewport (somente campos provados).
+struct SpawnEntity {
+    uint16_t type;         // 10 bits :2597
+    uint16_t key;          // BE &0x7FFF :2592/:2605
+    uint8_t  x, y;         // PositionX/Y :2606
+    uint8_t  targetX, targetY;  // :2701
+    uint8_t  dir;          // Path>>4 :2637
+    int      angleDeg;     // ((dir-1)*45) :2637
+    bool     createFlag;   // Key b15 :2602 (AppearMonster :2681)
+    bool     teleportFlag; // KeyH.0x40 :2603
+    bool     myMob;        // TypeH.0x80 :2595
+    uint8_t  buildTime;    // (TypeH&0x70)>>4 :2596
+    std::vector<uint8_t> buffs;  // s_BuffEffectState[0..count) :2614-:2619
+};
+
+bool ParseC2_ViewportMonsterSpawnPlain(const std::vector<uint8_t>& pkt,
+                                       std::vector<SpawnEntity>& out, std::string& err) {
+    out.clear();
+    if (pkt.size() < 5) { err = "0x13: C2 truncado (<5 B)"; return false; }
+    if (pkt[0] != 0xC2) { err = "0x13: espera C2 (PWMSG_HEADER :83-:89)"; return false; }
+    const size_t declared = ((size_t)pkt[1] << 8) | pkt[2];    // SizeH<<8|SizeL :86-:87
+    if (declared != pkt.size()) {
+        err = "0x13: tamanho C2 inconsistente (declared " + std::to_string(declared) +
+              " != total " + std::to_string(pkt.size()) + ")";
+        return false;
+    }
+    if (pkt[3] != 0x13) { err = "0x13: head invalido"; return false; }
+    const size_t count = pkt[4];                               // count BYTE :202/:2589
+    size_t off = 5;                                            // sizeof(PWHEADER_DEFAULT_WORD)
+    out.reserve(count);
+    for (size_t i = 0; i < count; ++i) {
+        if (off + 10 > pkt.size()) {
+            err = "0x13: entidade " + std::to_string(i) + " truncada (<10 B)";
+            out.clear(); return false;
+        }
+        SpawnEntity e{};
+        const uint8_t keyH = pkt[off], keyL = pkt[off + 1];
+        const uint8_t typeH = pkt[off + 2], typeL = pkt[off + 3];
+        const uint16_t keyRaw = (uint16_t)(((uint16_t)keyH << 8) | keyL);   // BE :2592
+        e.createFlag   = (keyRaw >> 15) != 0;                               // :2602
+        e.teleportFlag = ((keyH & 0x40) >> 6) != 0;                         // :2603
+        e.key          = keyRaw & 0x7FFF;                                   // :2605
+        e.myMob        = (typeH & 0x80) != 0;                               // :2595
+        e.buildTime    = (uint8_t)((typeH & 0x70) >> 4);                    // :2596
+        e.type         = (uint16_t)(((uint16_t)(typeH & 0x03) << 8) | typeL);  // :2597
+        e.x = pkt[off + 4]; e.y = pkt[off + 5];                             // :2606
+        e.targetX = pkt[off + 6]; e.targetY = pkt[off + 7];                 // :2701
+        e.dir = pkt[off + 8] >> 4;                                          // :2637
+        e.angleDeg = ((int)e.dir - 1) * 45;                                 // :2637
+        const uint8_t nBuffs = pkt[off + 9];                                // s_BuffCount
+        if (off + 10 + nBuffs > pkt.size()) {
+            err = "0x13: entidade " + std::to_string(i) + " buffs truncados";
+            out.clear(); return false;
+        }
+        e.buffs.assign(pkt.begin() + off + 10, pkt.begin() + off + 10 + nBuffs);
+        off += 10 + (size_t)nBuffs;                                         // stride :2710
+        out.push_back(std::move(e));
+    }
+    if (off != pkt.size()) {
+        err = "0x13: bytes residuos (" + std::to_string(pkt.size() - off) + ")";
+        out.clear(); return false;
+    }
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-E)

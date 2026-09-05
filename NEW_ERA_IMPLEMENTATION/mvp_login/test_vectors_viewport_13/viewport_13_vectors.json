@@ -1,0 +1,5 @@
+{
+  "caso": "viewport_spawn_c2_0x13",
+  "resp_c2_hex": "c2000f1301012302aa64c865c92000",
+  "expected_parse": { "count": 1, "key": 291, "type": 682, "x": 100, "y": 200, "dir": 2, "angleDeg": 45 }
+}
