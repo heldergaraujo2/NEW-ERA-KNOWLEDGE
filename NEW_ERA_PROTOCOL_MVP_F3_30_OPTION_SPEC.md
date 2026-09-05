@@ -37,3 +37,10 @@ Consumo no cliente (`ReceiveOption` :9388-:9435+):
 - `SendRequestCharactersList` :288-:296: `<< 0x00 << byLanguage` ⇒ wire real = C1 **5 B** (1.1-B/C usou 4 B; server ignora lpMsg — divergência documentada).
 - `SendRequestDeleteCharacter` :310-:320: `AddData(p_Resident, 20)` ⇒ Resident = **20 B no wire** (struct dizia 10; 1.1-D usou 10 — divergência documentada).
 - Todos os 3 usam `Send()` ⇒ C1 plain no wire real (C3 só no login `Send(TRUE)`).
+
+## 6. WIRE-REAL (1.2-A3) — NORMATIVO ATUAL
+- **REQ wire-real**: **C1 34 B** `[C1][22][F3][30][option[30]]` + XOR32 encadeado em [3..34) (AddData bXor=TRUE §43). Sem crypto/Encrypt — `Send()` default FALSE (:120).
+- **RESP wire-real**: **C1 34 B** — mesma estrutura `PRECEIVE_OPTION` (§3), bytes crus no stream (parser `ParseC1_F3_30_OptionResponsePlain` inalterado; swap MAKEWORD :9398).
+- Nota histórica: **C3 foi usado apenas em testes antigos (1.1-E); substituído por C1** — builders C3 marcados [DEPRECATED 1.2-A3] no core.
+- Builder canônico: `BuildC1_F3_30_OptionRequestWire(const std::array<uint8_t,30>&)`.
+

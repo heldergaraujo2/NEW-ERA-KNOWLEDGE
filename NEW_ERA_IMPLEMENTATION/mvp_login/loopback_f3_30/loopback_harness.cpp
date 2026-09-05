@@ -1,10 +1,10 @@
-// NEW-ERA — loopback_harness.cpp (1.1-E) — F3:0x30 Option Data
+// NEW-ERA — loopback_harness.cpp (1.2-A3) — F3:0x30 Option — WIRE-REAL C1
 // Prova end-to-end LOCAL com socket REAL — SOMENTE 127.0.0.1 (hardcode; sem args).
-//   SERVER stub: envia kRespServer (golden) -> recebe request C3 -> memcmp vs
-//                kReqExpected (diff no 1º offset divergente) -> close.
-//   CLIENT MVP : decodifica response (streamXored=false) -> ParseC1_F3_30 com
-//                asserts (hotKey0/0xFFFF/gameOption/qwer) -> envia request do
-//                builder REAL (BuildC3_F3_30_OptionRequestEncrypted, Enc1).
+//   SERVER stub: envia kRespServer (golden C1 34 B) -> recebe request C1 PLAIN
+//                (wire real 34 B) -> memcmp vs kReqExpected -> close.
+//   CLIENT MVP : decodifica response C1 (sem decrypt) -> ParseC1_F3_30 com
+//                asserts (hotKey0/gameOption/qwer) -> envia request do builder
+//                WIRE REAL (BuildC1_F3_30_OptionRequestWire).
 #include "embedded_vectors.h"
 #include "mvp_login_client.cpp"
 
@@ -57,11 +57,11 @@ static void ServerThread(std::promise<int> portPromise) {
     ::close(ls);
     if (c < 0) return;
 
-    printf("[server] conectado; enviando RESP golden (%zu B)\n", loopback_f3o::kRespSize);
+    printf("[server] conectado; enviando RESP golden C1 (%zu B)\n", loopback_f3o::kRespSize);
     if (!SendAll(c, loopback_f3o::kRespServer.data(), loopback_f3o::kRespSize)) { ::close(c); return; }
 
     uint8_t hdr[2];
-    if (!RecvAll(c, hdr, 2) || hdr[0] != 0xC3) { printf("[server] header invalido\n"); ::close(c); return; }
+    if (!RecvAll(c, hdr, 2) || hdr[0] != 0xC1) { printf("[server] header invalido (espera C1 wire real)\n"); ::close(c); return; }
     const size_t rest = (size_t)hdr[1] - 2;
     std::vector<uint8_t> pkt((size_t)hdr[1]);
     pkt[0] = hdr[0]; pkt[1] = hdr[1];
@@ -92,21 +92,15 @@ static bool ClientThread(int port) {
     addr.sin_port = htons((uint16_t)port);
     if (::connect(fd, (sockaddr*)&addr, sizeof(addr)) != 0) { ::close(fd); return false; }
 
-    std::string err;
-    crypto::PacketCryptoSM smRx;   // Dec2
-    if (!smRx.LoadKeysFromFile("NEW_ERA_IMPLEMENTATION/mvp_login/keys/Dec2.dat", &err, /*type=*/1) &&
-        !smRx.LoadKeysFromFile("keys/Dec2.dat", &err, /*type=*/1)) {
-        printf("[client] erro chaves RX: %s\n", err.c_str()); ::close(fd); return false;
-    }
-
-    // 1) response golden -> decode + parse option
+    // 1) response golden C1 -> decode (sem decrypt) + parse option
     std::vector<uint8_t> resp(loopback_f3o::kRespSize);
     if (!RecvAll(fd, resp.data(), resp.size())) { ::close(fd); return false; }
+    crypto::PacketCryptoSM smAny;  // C1: sem crypto
     const uint8_t ver[5] = { 1, 2, 3, 4, 5 };
-    mvp::ParsedMvp out; std::vector<uint8_t> plainC1;
-    if (!mvp::DecodeAndParseMvpPacket(resp, smRx, ver, out, err, /*streamXored=*/false, &plainC1) ||
+    mvp::ParsedMvp out; std::string err; std::vector<uint8_t> plainC1;
+    if (!mvp::DecodeAndParseMvpPacket(resp, smAny, ver, out, err, /*streamXored=*/false, &plainC1) ||
         out.head != 0xF3 || out.sub != 0x30) {
-        printf("[client] decode RESP falhou: %s\n", err.c_str()); ::close(fd); return false;
+        printf("[client] decode RESP falhou\n"); ::close(fd); return false;
     }
     mvp::ParsedOption opt; std::string perr;
     if (!mvp::ParseC1_F3_30_OptionResponsePlain(plainC1, opt, perr) ||
@@ -117,22 +111,20 @@ static bool ClientThread(int port) {
     }
     int empties = 0;
     for (int i = 1; i < 10; ++i) if (opt.hotKeys[i] == 0xFFFF) ++empties;
-    if (empties != loopback_f3o::kExpectedEmptyHotKeys) {
-        printf("[client] hotKeys vazias != esperado\n"); ::close(fd); return false;
-    }
-    printf("[client] decoded RESP: hotKey0=0x%04x gameOption=0x%02x qwer=%d (%d hotkeys vazias)\n",
-           opt.hotKeys[0], opt.gameOption, opt.qwerLevel, empties);
+    if (empties != loopback_f3o::kExpectedEmptyHotKeys) { ::close(fd); return false; }
+    printf("[client] decoded RESP C1: hotKey0=0x%04x gameOption=0x%02x qwer=%d\n",
+           opt.hotKeys[0], opt.gameOption, opt.qwerLevel);
 
-    // 2) request C->S com o builder REAL (1ª chamada => serial 0x01 = golden)
-    uint8_t option[30] = { 0 };
+    // 2) request C->S com o builder WIRE REAL (option[30] idêntica ao golden)
+    std::array<uint8_t, 30> option{};
     option[0] = 0x12; option[1] = 0x34;
     for (int i = 1; i < 10; ++i) { option[2*i] = 0xFF; option[2*i+1] = 0xFF; }
     option[20] = 0xA5; option[21] = 'Q'; option[22] = 'W'; option[23] = 'E';
     option[24] = 0x01; option[25] = 0x02;
     const int32_t q = 100; std::memcpy(&option[26], &q, 4);
-    auto req = mvp::BuildC3_F3_30_OptionRequestEncrypted(option, &err);
-    if (req.empty()) { printf("[client] builder falhou: %s\n", err.c_str()); ::close(fd); return false; }
-    printf("[client] sent REQ (%zu B)\n", req.size());
+    auto req = mvp::BuildC1_F3_30_OptionRequestWire(option);
+    if (req.empty()) { ::close(fd); return false; }
+    printf("[client] sent REQ wire-real C1 (%zu B)\n", req.size());
     if (!SendAll(fd, req.data(), req.size())) { ::close(fd); return false; }
 
     ::close(fd);
@@ -151,6 +143,6 @@ int main() {
     server.join();
     if (!cli)        { printf("FALHA: client\n"); return 3; }
     if (!g_serverOk) { printf("FALHA: server\n"); return 4; }
-    printf("LOOPBACK F3:30 OK: RESP->parse(hotKey/opt/qwer)->REQ(match)\n");
+    printf("LOOPBACK F3:30 WIRE OK: RESP-C1->parse(hotKey/opt/qwer)->REQ-C1-wire(match)\n");
     return 0;
 }

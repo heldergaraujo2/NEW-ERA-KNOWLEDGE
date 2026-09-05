@@ -536,7 +536,19 @@ namespace newera { namespace mvp {
 // 10 WORDs com par TROCADADO (MAKEWORD(HotKey[2i+1],HotKey[2i]) :9398; 0xFFFF
 // = vazio); GameOption bits :9413-:9435.
 
-// C->S: request plain 34 B + XOR32 em [3..34) (AddData encadeia — §3.2/§43).
+// C->S: request plain 34 B + XOR32 em [3..34) — [DEPRECATED 1.2-A3]: usar
+// BuildC1_F3_30_OptionRequestWire (wire real C1; C3 era convenção de teste).
+// C->S: request WIRE REAL (1.2-A3) = SendRequestHotKey (wsclientinline
+// :1597-:1603): Init(C1,F3)<<0x30; AddData(option,30); Send() default FALSE
+// (:120) => C1 PLAIN 34 B: [C1][22][F3][30][option[30]] + Xor32 [3..34).
+std::vector<uint8_t> BuildC1_F3_30_OptionRequestWire(const std::array<uint8_t, 30>& option30) {
+    std::vector<uint8_t> p(34, 0);
+    p[0] = 0xC1; p[1] = 34; p[2] = 0xF3; p[3] = 0x30;
+    std::memcpy(&p[4], option30.data(), 30);
+    crypto::XorData32(p.data(), 3, p.size());
+    return p;
+}
+
 std::array<uint8_t, 34> BuildC1_F3_30_OptionRequestPlain(const uint8_t option[30]) {
     std::array<uint8_t, 34> p{};
     p[0] = 0xC1; p[1] = 34; p[2] = 0xF3; p[3] = 0x30;
