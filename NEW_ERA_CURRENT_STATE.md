@@ -454,7 +454,7 @@
   trunc 9 B rejeitado c/ estado intocado. Parser
   `ParseViewportDeletePlain_C1` + `ApplyFrame_DeleteEntities_C1` (erase
   tolerante). Binários removidos. [LEDGER §73].
-- **1.3-J (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **position update 0x15
+- **1.3-J (2026-09-05)**: **position update 0x15
   completo (spec+impl+golden+loopback, exit 0×2, C1 7 B fixo) — CICLO
   SPAWN/MOVE/DELETE FECHADO** — spec classe (1): PACKET_POSITION=0x15
   (wsclientinline :24); ReceiveMovePosition :1746-:1767; PRECEIVE_MOVE_POSITION
@@ -465,6 +465,20 @@
   delete → ws=2. `MoveUpdate` + `ParsePositionUpdatePlain_C1` +
   `ApplyFrame_PositionUpdate_C1(&missed)`. Pendência: 0xD4 PACKET_MOVE
   (path/angle; header condicional). Binários removidos. [LEDGER §74].
+- **1.3-K (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **BOTH_MOVE completo
+  (spec+impl+golden+loopback, exit 0×2) — 0xD4 provado NO WIRE OLc
+  [id=0x0007][size:u32][body headerless]** — prova tripla: ponte
+  ProtocolSend.cpp :95-:96 (msg.body.data()) + Defined_Global.h :6
+  (NEW_PROTOCOL_SYSTEM no cliente) + PMOVE_CHARACTER :611-:620 header
+  CONDICIONAL; dispatch clássico C1 :13094 seria misparse (legado
+  incoerente — não implementado); nuance: POSITION (0x15) NÃO foi migrado
+  (header incondicional) ⇒ 1.3-J permanece válida. Key BE sem máscara
+  :1691; dir=Path0>>4 :1699; apply não-Hero: target=Data :1710-:1711,
+  x/y inalterados. Ciclo provado: move_ok (target 77/88, dir=3→90°,
+  xy intocados, missed=0) → miss (missed=1) → trunc sem efeito.
+  `MovePathUpdate` + `ParsePacketMoveD4Plain_Asio` +
+  `ApplyFrame_PacketMoveD4_Asio(&missed)`. Binários removidos.
+  [LEDGER §75].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -475,11 +489,12 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-K — A ESCOLHER** (decisão do usuário): (a) **0xD4 PACKET_MOVE**
-   (path/angle — PMOVE_CHARACTER :611-:620 c/ header CONDICIONAL
-   `#ifndef NEW_PROTOCOL_SYSTEM` e Path[1] variável; TargetAngle=Path[0]>>4
-   :1699; handler :1688-:1745), OU (b) **attack/skill** (family 0xDx —
-   a mapear). Com 1.3-J, o world tick já tem spawn/delete/move completo.
+1. **1.3-L — A ESCOLHER** (decisão do usuário): (a) **attack/skill básico**
+   (família 0xDx/attack do dispatcher clássico + espelho olc
+   BOTH_ATTACK1-3 — enum ordinais 8/9/10 — a mapear), OU (b)
+   **reconciliar BOTH_POSITION novo (olc 0x0006 → body p/
+   ReceiveMovePosition :93) vs 0x15 clássico** (struct header
+   incondicional — divergência de migração documentada na §75).
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —

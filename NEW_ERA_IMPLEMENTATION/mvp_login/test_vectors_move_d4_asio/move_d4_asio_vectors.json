@@ -1,0 +1,10 @@
+{
+  "caso": "both_move_asio_0x0007",
+  "frame12_c2_hex": "c2004f120201000a1403000102030405060708090a0b0c0d0e0f104865726f4100000000000b15130002001e2801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4865726f4200000000001f2920025566",
+  "frame13_c2_hex": "c2001d1302010100110a140b151001aa020200221e281f292003010203",
+  "move_ok_hex": "07000500000001004d5830",
+  "move_miss_hex": "0700050000003333090910",
+  "move_trunc_hex": "07000500000001004d58",
+  "expected": { "moved_key": 256, "new_target": [ 77, 88 ], "dir": 3, "angleDeg": 90, "xy_unchanged": [ 10, 20 ], "missed_final": 1, "ws_size": 4 },
+  "trunc": { "applied": false, "error": "0xD4: frame olc truncado (<11 B: id2+size4+body5; got 10 B)" }
+}

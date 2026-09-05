@@ -1303,3 +1303,89 @@ bool ApplyFrame_PositionUpdate_C1(const std::vector<uint8_t>& frame,
 }
 
 } } // namespace newera::mvp (bloco 1.3-J)
+
+// (bloco 1.3-K dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-K — PACKET_MOVE 0xD4 — ReceiveMoveCharacter — wire ATIVO = olc BOTH_MOVE
+// (spec 1.3-K: NEW_ERA_PROTOCOL_MVP_PACKET_MOVE_D4_SPEC.md). PROVA TRIPLA:
+// (a) ProtocolSend.cpp :95-:96 chama o handler com msg.body.data() (headerless);
+// (b) Defined_Global.h :6 define NEW_PROTOCOL_SYSTEM no CLIENTE;
+// (c) PMOVE_CHARACTER (WSclient.h :611-:620) tem header CONDICIONAL
+//     `#ifndef NEW_PROTOCOL_SYSTEM` => body = [KeyH][KeyL][X][Y][Path[1..]].
+// => frame RX = [id:u16=0x0007 LE][size:u32 LE][body>=5], mín. 11 B.
+// O dispatch clássico :13094-:13095 (buffer C1 c/ header) seria MISPARSE c/
+// struct headerless — legado incoerente, NÃO implementado (anti-invenção).
+// Decode: Key BE SEM máscara :1691 (grep :1688-:1745 sem 0x7FFF); X/Y
+// :1704/:1710; dir = Path[0]>>4 :1699 (TargetAngle nibble); angleDeg usa a
+// convenção *45 PROVADA em :2271/:2637 (correlação documentada). Apply não-Hero
+// (:1710-:1711): targetX/Y = Data; x/y inalterados (PathFinding2 :1730 interpola
+// no render). Exceções Hero/monstro+52 (:1700-:1719) fora do MVP. Sem TX aqui.
+
+// enum class ProtocolHead : uint16_t (ProtocolSend.h :7-:26) => BOTH_MOVE = 7
+static constexpr uint16_t kProto_BOTH_MOVE = 0x0007;
+
+// S->C: 1 update de movimento com path/ângulo (body olc headerless).
+struct MovePathUpdate {
+    uint16_t key;      // BE :1691 (sem máscara)
+    uint8_t  x, y;     // PositionX/Y do body (:1710)
+    uint8_t  path0;    // Path[0] (:1699)
+    uint8_t  dir;      // path0>>4 :1699
+    int      angleDeg; // ((dir-1)*45) — correlação da convenção :2271/:2637
+    std::vector<uint8_t> pathTail;  // steps ALÉM de Path[0] (não lidos pelo
+                                    // handler; preservados opacos, size-5 B)
+};
+
+bool ParsePacketMoveD4Plain_Asio(const std::vector<uint8_t>& frame,
+                                 MovePathUpdate& out, std::string& err) {
+    if (frame.size() < 11) {
+        err = "0xD4: frame olc truncado (<11 B: id2+size4+body5; got " +
+              std::to_string(frame.size()) + " B)";
+        return false;
+    }
+    uint16_t id = 0; uint32_t sz = 0;
+    std::memcpy(&id, &frame[0], 2);                        // u16 LE
+    std::memcpy(&sz, &frame[2], 4);                        // u32 LE
+    if (id != kProto_BOTH_MOVE) {
+        err = "0xD4: espera olc id=0x0007 (BOTH_MOVE; enum :7-:26)";
+        return false;
+    }
+    const size_t body = frame.size() - 6;
+    if ((size_t)sz != body || body < 5) {
+        err = "0xD4: size olc inconsistente (declared " + std::to_string(sz) +
+              " != body " + std::to_string(body) + " ou body <5 B)";
+        return false;
+    }
+    out.key = (uint16_t)(((uint16_t)frame[6] << 8) | frame[7]);   // BE :1691
+    out.x = frame[8];
+    out.y = frame[9];
+    out.path0 = frame[10];
+    out.dir = out.path0 >> 4;                                     // :1699
+    out.angleDeg = ((int)out.dir - 1) * 45;                       // correlação
+    out.pathTail.assign(frame.begin() + 11, frame.end());         // opaco
+    return true;
+}
+
+// S->C: aplica a keys EXISTENTES (dir/angle + target=Data; x/y inalterados);
+// key inexistente => ignora sem falhar (contabiliza em *missed se dado).
+bool ApplyFrame_PacketMoveD4_Asio(const std::vector<uint8_t>& frame,
+                                  WorldState& ws, std::string& err,
+                                  size_t* missed = nullptr) {
+    MovePathUpdate u;                                      // parse LOCAL
+    if (!ParsePacketMoveD4Plain_Asio(frame, u, err)) return false;
+    auto it = ws.entities.find(u.key);
+    if (it == ws.entities.end()) {
+        if (missed) ++(*missed);
+        return true;
+    }
+    EntityRecord& r = it->second;
+    r.dir = u.dir;                                         // :1699
+    r.angleDeg = u.angleDeg;                               // correlação *45
+    r.targetX = u.x;                                       // :1710-:1711
+    r.targetY = u.y;                                       // (não-Hero)
+    // x/y propositalmente NÃO alterados (PathFinding2 :1730 interpola)
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-K)
