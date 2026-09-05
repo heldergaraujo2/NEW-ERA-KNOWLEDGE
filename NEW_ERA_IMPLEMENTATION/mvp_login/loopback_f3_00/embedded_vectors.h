@@ -1,31 +1,28 @@
-// NEW-ERA — loopback_f3_00 — embedded_vectors.h (1.1-C)
+// NEW-ERA — loopback_f3_00 — embedded_vectors.h (1.2-A1, WIRE-REAL C1)
 // FONTE: NEW_ERA_IMPLEMENTATION/mvp_login/test_vectors_f3_00/f3_00_vectors.json
-// SHA256 do json: d158f7aaa79b6d506f24bc6f8232e75fe93f35dff45a389ac8dc38454b36d3f5
-// Gerado programaticamente (sem digitacao) a partir do golden 1.1-C.
+// SHA256 do json: fafe052fd26dcb57215e0ad6f85b4b3506e605e611f4ff273bf0ceb2c766d250
+// Gerado programaticamente (sem digitacao). ATENCAO: REQ e RESP sao C1 PLAIN.
 #pragma once
 #include <array>
 #include <stdint.h>
 #include <stddef.h>
 namespace newera { namespace loopback_f3 {
-constexpr size_t kReqSize  = 13;   // request C->S C3 (esperado no server)
-constexpr size_t kRespSize = 57;   // response S->C C3 (server stub envia)
-// expected_parse (do json):
-constexpr int         kExpectedCount    = 1;
-constexpr int         kExpectedMaxClass = 3;
-constexpr uint16_t    kExpectedLevel    = 345;
-static const char*    kExpectedName     = "Hero1";
+constexpr size_t kReqSize  = 5;   // request C->S C1 PLAIN (wire real)
+constexpr size_t kRespSize = 40;   // response S->C C1 PLAIN (server envia)
+constexpr int      kExpectedCount    = 1;
+constexpr int      kExpectedMaxClass = 3;
+constexpr uint16_t kExpectedLevel    = 345;
+static const char* kExpectedName     = "Hero1";
 
-constexpr std::array<uint8_t, 13> kReqExpected = {
-    0xC3, 0x0D, 0xCC, 0x91, 0x23, 0x49, 0x5A, 0xE2, 0xC2, 0x6F, 0x94, 0x4E,
-    0x70
+constexpr std::array<uint8_t, 5> kReqExpected = {
+    0xC1, 0x05, 0xF3, 0x7A, 0xC7
 };
 
-constexpr std::array<uint8_t, 57> kRespServer = {
-    0xC3, 0x39, 0x9A, 0xC9, 0x1A, 0xD8, 0x47, 0x13, 0xF7, 0x02, 0x66, 0x75,
-    0x40, 0x20, 0xE6, 0x14, 0x59, 0x56, 0xD4, 0x02, 0x63, 0x59, 0x84, 0xB1,
-    0x48, 0x10, 0x04, 0xC4, 0x86, 0x3D, 0xE5, 0x64, 0x2A, 0x95, 0xA0, 0x45,
-    0x1B, 0x0D, 0x0F, 0x12, 0x52, 0x02, 0xD4, 0xD8, 0xCD, 0xF8, 0x45, 0x1B,
-    0x0D, 0x0F, 0x12, 0x52, 0x02, 0xD4, 0xD8, 0xC2, 0xF8
+constexpr std::array<uint8_t, 40> kRespServer = {
+    0xC1, 0x28, 0xF3, 0x00, 0x03, 0x00, 0x01, 0x00, 0x48, 0x65, 0x72, 0x6F,
+    0x31, 0x00, 0x00, 0x00, 0x00, 0x00, 0x59, 0x01, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00
 };
 
 } } // namespace

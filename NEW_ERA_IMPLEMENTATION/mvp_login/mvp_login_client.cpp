@@ -332,9 +332,17 @@ namespace newera { namespace mvp {
 //   switch(Index) 0..4 com default:return :545-:561.
 
 // C->S: request plain 4 B + XOR32 no range [3..size) (padrão §3.2/§43 do login).
-// Esta função é o equivalente NEW-ERA do padrão Init(C1,F3)<<0x00; Send(TRUE)
-// do legado. Resultado: [C1][04][F3][0x7A] — subcode 0x00 vira
-// 0x00 ^ head(0xF3) ^ Filter[3](0x89) = 0x7A.
+// [DEPRECATED 1.2-A1] Formato de TESTE (4 B): o WIRE REAL é 5 B com byLanguage
+// (SendRequestCharactersList :288-:296) — usar BuildC1_F3_00_RequestCharListWire.
+// C->S: request WIRE REAL (1.2-A1) = SendRequestCharactersList (wsclientinline
+// :288-:296): Init(C1,F3)<<0x00<<byLanguage; Send() default FALSE (:120) =>
+// C1 PLAIN 5 B: [C1][05][F3][00][byLanguage] + Xor32 encadeado em [3..5) (§43).
+std::vector<uint8_t> BuildC1_F3_00_RequestCharListWire(uint8_t byLanguage) {
+    std::vector<uint8_t> p = { 0xC1, 0x05, 0xF3, 0x00, byLanguage };
+    crypto::XorData32(p.data(), 3, p.size());
+    return p;
+}
+
 std::vector<uint8_t> BuildC1_F3_00_RequestCharListPlain() {
     std::vector<uint8_t> p = { 0xC1, 0x04, 0xF3, 0x00 };
     crypto::XorData32(p.data(), 3, p.size());
