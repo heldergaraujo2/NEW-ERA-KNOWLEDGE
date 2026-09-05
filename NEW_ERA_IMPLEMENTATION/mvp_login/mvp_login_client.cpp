@@ -1389,3 +1389,74 @@ bool ApplyFrame_PacketMoveD4_Asio(const std::vector<uint8_t>& frame,
 }
 
 } } // namespace newera::mvp (bloco 1.3-K)
+
+// (bloco 1.3-L dentro do namespace do MVP)
+namespace newera { namespace mvp {
+
+// ---------------------------------------------------------------------------
+// 1.3-L — BOTH_POSITION (olc id=0x0006) — ReceiveMovePosition no wire novo —
+// wire-real per spec 1.3-L (NEW_ERA_PROTOCOL_MVP_BOTH_POSITION_SPEC.md).
+// EVIDÊNCIA: enum ProtocolHead (ProtocolSend.h :7-:26) => BOTH_POSITION =
+// ordinal 6; ponte ProtocolSend.cpp :92-:94 `case BOTH_POSITION:
+// ReceiveMovePosition((BYTE*)msg.body.data())`. DIVERGÊNCIA DE MIGRAÇÃO
+// (vs MOVE 1.3-K): PRECEIVE_MOVE_POSITION (WSclient.h :892-:898) mantém
+// PBMSG_HEADER INCONDICIONAL => o body olc (7 B) CONTÉM os 3 bytes de header
+// embutidos no início (necessidade estrutural: handler lê KeyH no offset 3
+// do cast :1748). Os 3 bytes NÃO são lidos pelo handler (:1746-:1767 só usa
+// KeyH..Y) => OPACOS, valores [NOT RECOVERED], não validados. Campos
+// funcionais IDÊNTICOS ao 0x15 clássico (1.3-J): Key BE SEM máscara :1749;
+// x/y=Data :1762-:1763 E target=Data :1764-:1765; sem dir/angle. TX lateral:
+// SendPositionNew :212-:221 body 2 B PMSG_POSITION_SEND{x,y} (self, :44-:48).
+// Frame = [id:u16=0x0006 LE][size:u32 LE][body 7 B], total 13 B. Sem TX aqui.
+
+// enum class ProtocolHead : uint16_t (ProtocolSend.h :7-:26) => BOTH_POSITION = 6
+static constexpr uint16_t kProto_BOTH_POSITION = 0x0006;
+
+// S->C: parse do frame olc BOTH_POSITION (reusa MoveUpdate do bloco 1.3-J).
+bool ParseBOTH_POSITION_Asio(const std::vector<uint8_t>& frame,
+                             MoveUpdate& out, std::string& err) {
+    if (frame.size() != 13) {
+        err = "0x0006: frame olc invalido (espera 13 B = id2+size4+body7; got " +
+              std::to_string(frame.size()) + " B)";
+        return false;
+    }
+    uint16_t id = 0; uint32_t sz = 0;
+    std::memcpy(&id, &frame[0], 2);                        // u16 LE
+    std::memcpy(&sz, &frame[2], 4);                        // u32 LE
+    if (id != kProto_BOTH_POSITION) {
+        err = "0x0006: espera olc id=0x0006 (BOTH_POSITION; enum :7-:26)";
+        return false;
+    }
+    const size_t body = frame.size() - 6;
+    if ((size_t)sz != body || body != 7) {
+        err = "0x0006: body deve ser 7 B (header PBMSG embutido 3 B + KeyH KeyL X Y"
+              " :892-:898); declared " + std::to_string(sz) + " B";
+        return false;
+    }
+    // body[0..2] = PBMSG_HEADER embutido — OPACO (handler nao le; [NOT RECOVERED])
+    out.key = (uint16_t)(((uint16_t)frame[6 + 3] << 8) | frame[6 + 4]);  // BE :1749
+    out.x = frame[6 + 5];                                  // :1762
+    out.y = frame[6 + 6];                                  // :1763
+    return true;
+}
+
+// S->C: aplica a keys EXISTENTES (x/y e target=Data, igual 0x15 :1762-:1765;
+// dir/angle inalterados); key inexistente => ignora sem falhar (conta em *missed).
+bool ApplyFrame_BOTH_POSITION_Asio(const std::vector<uint8_t>& frame,
+                                   WorldState& ws, std::string& err,
+                                   size_t* missed = nullptr) {
+    MoveUpdate m;                                          // parse LOCAL
+    if (!ParseBOTH_POSITION_Asio(frame, m, err)) return false;
+    auto it = ws.entities.find(m.key);
+    if (it == ws.entities.end()) {
+        if (missed) ++(*missed);
+        return true;
+    }
+    EntityRecord& r = it->second;
+    r.x = m.x; r.y = m.y;                                  // :1762-:1763
+    r.targetX = m.x; r.targetY = m.y;                      // :1764-:1765
+    // dir/angleDeg propositalmente NÃO alterados (nao vem no pacote)
+    return true;
+}
+
+} } // namespace newera::mvp (bloco 1.3-L)

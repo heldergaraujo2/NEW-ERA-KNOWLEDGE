@@ -1,0 +1,11 @@
+{
+  "caso": "both_position_asio_0x0006_equiv_0x15",
+  "frame12_c2_hex": "c2004f120201000a1403000102030405060708090a0b0c0d0e0f104865726f4100000000000b15130002001e2801aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4865726f4200000000001f2920025566",
+  "frame13_c2_hex": "c2001d1302010100110a140b151001aa020200221e281f292003010203",
+  "both_ok_hex": "060007000000c1071501004d58",
+  "pkt15_ok_hex": "c1071501004d58",
+  "both_miss_hex": "060007000000c1071533330909",
+  "both_trunc_hex": "060007000000c1071501004d",
+  "expected": { "moved_key": 256, "moved_key_hex": "0x0100", "x": 77, "y": 88, "target": [ 77, 88 ], "missed_final": 1, "ws_size": 4, "equiv_0x15": true, "dir_unchanged": true },
+  "trunc": { "applied": false, "error": "0x0006: frame olc invalido (espera 13 B = id2+size4+body7; got 12 B)" } 
+}

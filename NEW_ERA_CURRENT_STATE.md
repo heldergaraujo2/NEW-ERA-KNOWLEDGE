@@ -465,7 +465,7 @@
   delete → ws=2. `MoveUpdate` + `ParsePositionUpdatePlain_C1` +
   `ApplyFrame_PositionUpdate_C1(&missed)`. Pendência: 0xD4 PACKET_MOVE
   (path/angle; header condicional). Binários removidos. [LEDGER §74].
-- **1.3-K (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **BOTH_MOVE completo
+- **1.3-K (2026-09-05)**: **BOTH_MOVE completo
   (spec+impl+golden+loopback, exit 0×2) — 0xD4 provado NO WIRE OLc
   [id=0x0007][size:u32][body headerless]** — prova tripla: ponte
   ProtocolSend.cpp :95-:96 (msg.body.data()) + Defined_Global.h :6
@@ -479,6 +479,21 @@
   `MovePathUpdate` + `ParsePacketMoveD4Plain_Asio` +
   `ApplyFrame_PacketMoveD4_Asio(&missed)`. Binários removidos.
   [LEDGER §75].
+- **1.3-L (2026-09-05) — FRONTEIRA DOCUMENTAL ATUAL**: **BOTH_POSITION completo
+  (spec+impl+golden+loopback, exit 0×2) — segundo canal de position FECHADO
+  com EQUIVALÊNCIA 0x15 provada** — BOTH_POSITION=0x0006 (ordinal 6, enum
+  ProtocolSend.h :7-:26); ponte :92-:94 → ReceiveMovePosition(body.data())
+  (mesmo handler do 0x15); RESOLUÇÃO da divergência §75: header
+  INCONDICIONAL ⇒ body olc 7 B CONTÉM os 3 bytes de PBMSG_HEADER embutidos
+  (necessidade estrutural: KeyH no offset 3) — bytes OPACOS [NOT RECOVERED],
+  não lidos/não validados; frame = [id=0x0006:u16][size=7:u32]
+  [hdr3 opaco][Key BE sem máscara][X][Y], 13 B. Ciclo provado: spawn 4 →
+  both_ok (0x0100 → x/y/target 77/88, dir intocado) → pkt15_ok aplica-se
+  com estado IDÊNTICO campo-a-campo (equiv) → miss (missed=1) → trunc 12 B
+  sem efeito. TX lateral: SendPositionNew :212-:221 body 2 B {x,y}.
+  `kProto_BOTH_POSITION` + `ParseBOTH_POSITION_Asio` +
+  `ApplyFrame_BOTH_POSITION_Asio(&missed)`. Binários removidos.
+  [LEDGER §76].
 - **INFRA-1 (2026-09-05)**: infraestrutura upstream adicionada —
   `UPSTREAM_PIN.md` (pin wongddd/muonline@580472e; política raw+sha256, sem
   clone) · `UPSTREAM_INDEX.json` (18.372 entries, tree completa não-truncada,
@@ -489,12 +504,11 @@
   *0D*/*0E* existe; /tmp está fora do workspace e não qualifica como fonte).
 
 ## 4. Próximo Microteste Sugerido (suportado por pendências em arquivo)
-1. **1.3-L — A ESCOLHER** (decisão do usuário): (a) **attack/skill básico**
-   (família 0xDx/attack do dispatcher clássico + espelho olc
-   BOTH_ATTACK1-3 — enum ordinais 8/9/10 — a mapear), OU (b)
-   **reconciliar BOTH_POSITION novo (olc 0x0006 → body p/
-   ReceiveMovePosition :93) vs 0x15 clássico** (struct header
-   incondicional — divergência de migração documentada na §75).
+1. **1.3-M (decisão do usuário, 2026-09-05)**: **attack/skill básico** —
+   começar pelo o mais simples do dispatcher (família attack 0xDx do
+   dispatcher clássico + espelho olc BOTH_ATTACK1-3, enum ordinais 8/9/10 —
+   a mapear; mesma metodologia 1.3-K/1.3-L: evidência → spec → core →
+   golden/loopback).
 2. **PacketManager: seeding de m_XorFilter[32] / LoadKey / Enc1-Dec2 server-side** —
    [LEDGER §15 item 2 :~521].
 3. **H2 (Connection.cpp/wsProtocolCheck) e H3 (camada ativa em runtime na 55901)** —
