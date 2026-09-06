@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "name": "both_attack_olc_vectors",
+    "endianness": {
+      "olc_header": "LE",
+      "MAKE_NUMBERW_fields": "BE (skill/index)"
+    }
+  },
+  "vectors": [
+    {
+      "name": "both_attack1_basic",
+      "expect_ok": true,
+      "id_u16": "0x0008",
+      "body_size_u32": 7,
+      "body_hex": "c1071101017803",
+      "frame_hex": "080007000000c1071101017803",
+      "notes": "hdr3=C1 07 11; index=0x0101; action=0x78; dir=0x03"
+    },
+    {
+      "name": "both_attack2_skill_basic",
+      "expect_ok": true,
+      "id_u16": "0x0009",
+      "body_size_u32": 9,
+      "body_hex": "c309db00010932013c",
+      "frame_hex": "090009000000c309db00010932013c",
+      "notes": "hdr3=C3 09 DB; skill=0x0009 via (skillH=00, skillL=09 intercalado); count=1; x=50; serial=1; y=60"
+    },
+    {
+      "name": "both_attack2_count0_invalid_local_guard",
+      "expect_ok": false,
+      "id_u16": "0x0009",
+      "notes": "Builder deve rejeitar count=0 (não gerar frame)."
+    }
+  ]
+}
