@@ -1124,3 +1124,27 @@ Next: 1.3-R P2 — implementar builders TX olc nativos (0x0008/0x0009) + golden 
 
 Next: stage/review/commit do core (`mvp_login_client.cpp`) + report 1.3-RP2; depois decidir se builders permanecem `static` (single-TU) ou se serão promovidos para linkage externo (two-TU).
 
+## 83. FASE 1 — 1.3-S: RX 0x18 (action) + 0x19 (magic) — on-wire + emissores GS CONFIRMADOS
+
+Evidence (repo):
+- `EVIDENCE/1.3-S/NEW_ERA_1_3_S_CLIENT_STRUCT_DEFS_RECEIVE_ACTION_MAGIC.md` sha256 `4f3dcf60652982e94eafc83bab5b2832b5df9672269f36d92daba618e7ee7b88`
+- `EVIDENCE/1.3-S/NEW_ERA_1_3_S_GS_EMITTERS_0x18_0x19_EVIDENCE.md` sha256 `c72268df0c116b5f25b97c539a89fe17225977eebf04bfbd4044e0cc3e7055ff`
+- `EVIDENCE/1.3-S/NEW_ERA_1_3_S_GS_EMITTERS_0x19_MAGIC_EVIDENCE.md` sha256 `62a005f946358b88c1b86cfca45f15ceb0197fbf8ed7f8d8cb5b9d5629c2b0e4`
+
+Client RX dispatch (TranslateProtocol):
+- `0x18 -> ReceiveAction(ReceiveBuffer, Size)`
+- `0x19 -> ReceiveMagic(ReceiveBuffer, Size, bEncrypted)` (retorno checado)
+
+On-wire layouts (client structs, C1 len 0x09):
+- RX 0x18 (action): `C1 09 18 | KeyH KeyL Angle Action TargetKeyH TargetKeyL`
+- RX 0x19 (magic):  `C1 09 19 | MagicH MagicL SourceKeyH SourceKeyL TargetKeyH TargetKeyL`
+  - bit 15 do target indica success; client lê `TargetKey>>15` e mascara `&0x7FFF`.
+
+GS emitters (broadcast viewport + envio ao caster):
+- 0x18: `CGActionRecv` (rebroadcast) + `GCActionSend` (MsgSendV2)
+  - Trigger combat confirmado: melee handler chama `GCActionSend` antes do dano (0x11).
+- 0x19: `CSkillManager::GCSkillAttackSend` monta `PMSG_SKILL_ATTACK_SEND` e envia ao caster (DataSend) + viewport (MsgSendV2).
+  - Observação crítica: bifurcação `GAMESERVER_UPDATE>=701` muda a ordem dos campos (index-first vs skill-first). O client pinado usa skill-first.
+
+Next (P2): implementar parsers RX 0x18/0x19 no motor mínimo de WorldState (aplicar anim/skill event) + golden + loopback.
+

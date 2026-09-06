@@ -579,3 +579,4 @@
    (indexada no Ledger §6 :~291-301).
 3. NEW_ERA_PHASE_0B_GAMELOOP_FPS_AUDIT.md (27.919 B / 318 L) — idem (§7 :~303-327).
 Fronteira: 1.3-R P2 (BOTH_ATTACK1/2 TX olc) CONFIRMADO; Next: commit core + report.
+Fronteira: 1.3-S (RX 0x18/0x19) CONFIRMADO; Next: 1.3-S P2 (parsers RX + golden+loopback).
