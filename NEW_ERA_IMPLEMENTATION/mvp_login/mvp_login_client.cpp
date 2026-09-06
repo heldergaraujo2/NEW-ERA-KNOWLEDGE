@@ -1722,5 +1722,100 @@ bool BuildC1_SkillRequestWire(uint16_t skillType, uint8_t x, uint8_t y,
     }
     return true;
 }
+// ============================================================================
+// 1.3-R P2 (core) — BOTH_ATTACK1/2 builders (olc/ASIO) — NORMATIVE from spec
+// Source: NEW_ERA_PROTOCOL_MVP_BOTH_ATTACK_TX_SPEC.md
+// ============================================================================
+
+static constexpr uint16_t kProto_BOTH_ATTACK1 = 0x0008;
+static constexpr uint16_t kProto_BOTH_ATTACK2 = 0x0009;
+
+// Helper: append u16/u32 little-endian (olc header)
+static inline void AppendU16LE(std::vector<uint8_t>& out, uint16_t v)
+{
+    out.push_back(static_cast<uint8_t>(v & 0xFF));
+    out.push_back(static_cast<uint8_t>((v >> 8) & 0xFF));
+}
+
+static inline void AppendU32LE(std::vector<uint8_t>& out, uint32_t v)
+{
+    out.push_back(static_cast<uint8_t>(v & 0xFF));
+    out.push_back(static_cast<uint8_t>((v >> 8) & 0xFF));
+    out.push_back(static_cast<uint8_t>((v >> 16) & 0xFF));
+    out.push_back(static_cast<uint8_t>((v >> 24) & 0xFF));
+}
+
+// BOTH_ATTACK1 frame: 13B total = olc header(6) + body(7)
+// body: [hdr3=C1 07 11][indexH][indexL][action=0x78][dir]
+static bool BuildAsio_BOTH_ATTACK1_Wire(
+    uint16_t indexBE,
+    uint8_t action,
+    uint8_t dir,
+    std::vector<uint8_t>* out,
+    std::string* err)
+{
+    if (!out) { if (err) *err = "out=null"; return false; }
+    out->clear();
+
+    if (indexBE == 0) { if (err) *err = "index=0"; return false; }
+    if (dir > 7) { if (err) *err = "dir>7"; return false; }
+
+    // olc header
+    AppendU16LE(*out, kProto_BOTH_ATTACK1);
+    AppendU32LE(*out, 7);
+
+    // body (PBMSG_HEAD opaco)
+    out->push_back(0xC1);
+    out->push_back(0x07);
+    out->push_back(0x11);
+
+    // index BE
+    out->push_back(static_cast<uint8_t>((indexBE >> 8) & 0xFF));
+    out->push_back(static_cast<uint8_t>(indexBE & 0xFF));
+
+    out->push_back(action); // expect 0x78
+    out->push_back(dir);
+
+    return true;
+}
+
+// BOTH_ATTACK2 frame: 15B total = olc header(6) + body(9)
+// body: [hdr3=C3 09 DB][skillH][count][skillL][x][serial][y]
+// NOTE: skill fields are "interleaved": (skillH, count, skillL) to match GS struct.
+static bool BuildAsio_BOTH_ATTACK2_Wire(
+    uint16_t skillBE,
+    uint8_t x,
+    uint8_t y,
+    uint8_t serial,
+    uint8_t count,
+    std::vector<uint8_t>* out,
+    std::string* err)
+{
+    if (!out) { if (err) *err = "out=null"; return false; }
+    out->clear();
+
+    if (count < 1) { if (err) *err = "count<1"; return false; }
+    if (serial < 1 || serial > 50) { if (err) *err = "serial out of range (1..50)"; return false; }
+
+    AppendU16LE(*out, kProto_BOTH_ATTACK2);
+    AppendU32LE(*out, 9);
+
+    // body (PBMSG_HEAD opaco)
+    out->push_back(0xC3);
+    out->push_back(0x09);
+    out->push_back(0xDB);
+
+    // interleaved fields
+    out->push_back(static_cast<uint8_t>((skillBE >> 8) & 0xFF)); // skillH
+    out->push_back(count);                                       // count
+    out->push_back(static_cast<uint8_t>(skillBE & 0xFF));        // skillL
+
+    out->push_back(x);
+    out->push_back(serial);
+    out->push_back(y);
+
+    return true;
+}
+
 
 } } // namespace newera::mvp (bloco 1.3-O)

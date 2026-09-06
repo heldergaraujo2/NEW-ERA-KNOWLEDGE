@@ -1113,3 +1113,14 @@ Próximo microteste sugerido: **1.3-R** — evidenciar formato/body de `BOTH_ATT
 
 Next: 1.3-R P2 — implementar builders TX olc nativos (0x0008/0x0009) + golden + loopback; manter túnel 0x000C em paralelo (compat).
 
+## 82. FASE 1 — 1.3-R P2: BOTH_ATTACK1/2 TX olc — GOLDEN + LOOPBACK OK (CONFIRMADO)
+
+- Report: `EVIDENCE/1.3-RP2/NEW_ERA_1_3_RP2_BOTH_ATTACK_LOOPBACK_REPORT.md` sha256 `9dece22fb643f77dc376ba5a30f06734ad1d4776eaf374069c475394bebf0890`
+- Builders no core (`mvp_login_client.cpp`) provados byte-a-byte contra `both_attack_olc_vectors.json`:
+  - BOTH_ATTACK1 (0x0008): `080007000000c1071101017803`
+  - BOTH_ATTACK2 (0x0009): `090009000000c309db00010932013c`
+  - Guard: `count=0` rejeitado localmente (não gera frame)
+- Loopback real (127.0.0.1 porta efêmera): TX attack1 + TX attack2 com memcmp no stub server; RESP damage C1 (golden 1.3-N) aplicado/memcmp OK.
+
+Next: stage/review/commit do core (`mvp_login_client.cpp`) + report 1.3-RP2; depois decidir se builders permanecem `static` (single-TU) ou se serão promovidos para linkage externo (two-TU).
+
