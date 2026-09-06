@@ -1100,3 +1100,16 @@ FIM DO LEDGER — documento vivo; adicionar, nunca apagar.
 
 Próximo microteste sugerido: **1.3-R** — evidenciar formato/body de `BOTH_ATTACK1` e `BOTH_ATTACK2` (olc), para habilitar TX moderno sem túnel 0x000C (ou decidir manter ambos).
 
+## 81. FASE 1 — 1.3-R: BOTH_ATTACK1/2 (0x0008/0x0009) bodies olc — CONFIRMADO
+
+- Evidence: `EVIDENCE/1.3-R/NEW_ERA_1_3_R_BOTH_ATTACK1_2_BODIES_EVIDENCE.md` sha256 `6f397f4748be5184b84365e22cccca3bf9fb4cbff0321f629f43881195281efc`
+- Enum `ProtocolHead` (GS): `BOTH_ATTACK1=0x0008`, `BOTH_ATTACK2=0x0009` (simétrico ao client).
+- Bodies embutem `PBMSG_HEAD` (3B) e os handlers ignoram o header (padrão também visto em BOTH_POSITION).
+- BOTH_ATTACK1 body (7B): `[hdr3][indexH][indexL][action][dir]` (index BE via `MAKE_NUMBERW`).
+- BOTH_ATTACK2 body (9B, branch >=701): `[hdr3][skillH][count][skillL][x][serial][y]`:
+  - `skill = MAKE_NUMBERW(skillH, skillL)` (BE), com layout intercalado.
+  - **Não é o mesmo layout do C1 0xDB clássico**.
+- Dispatcher moderno faz cast direto de `msg.body.data()` (sem validação robusta de tamanho) e bypassa `ProtocolCore`.
+
+Next: 1.3-R P2 — implementar builders TX olc nativos (0x0008/0x0009) + golden + loopback; manter túnel 0x000C em paralelo (compat).
+
