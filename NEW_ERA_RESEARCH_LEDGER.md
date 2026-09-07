@@ -1159,3 +1159,19 @@ Next (P2): implementar parsers RX 0x18/0x19 no motor mínimo de WorldState (apli
 
 Next: stage/commit/push do core (`mvp_login_client.cpp`) + report 1.3-SP2; depois escolher próximo bloco (inventário/itens ou viewport updates adicionais).
 
+## 85. FASE 1 — 1.3-T/T2: ServerVersion (F1:00) + GAMESERVER_UPDATE=502 (Season5) — CONFIRMADO
+
+Evidence (repo):
+- `EVIDENCE/1.3-T/NEW_ERA_1_3_T_SERVER_VERSION_AND_701_MODE_EVIDENCE.md` sha256 `78c876a9832888850ccb6eb93353a8b7b8e4d805eb60fb5360d8f2661f511914`
+- `EVIDENCE/1.3-T2/NEW_ERA_1_3_T2_GAMESERVER_UPDATE_DEFINE_EVIDENCE.md` sha256 `682272f698d157c902b03e64c2b5b13b0b1cc7ea128370319b232bbe84ff4213`
+
+CONFIRMED:
+- A versão (5 bytes) viaja no `F1:00` (GS->client) e é validada no GS por `memcmp(gServerInfo.m_ServerVersion, lpMsg->ClientVersion)`.
+- O client pinado **não** possui lógica runtime de versão/`GAMESERVER_UPDATE`/`>=701` (0 hits).
+- O GS deste pin define `GAMESERVER_UPDATE=502` (Season 5) via `stdafx.h`.
+  - Consequência: gates `#if(GAMESERVER_UPDATE>=701)` ficam no ramo `<701` (skill-first), compatível com o layout do client pinado para `0x19`.
+- `NEW_PROTOCOL_SYSTEM 1` também é definido em `stdafx.h`, consistente com o envio C1 plain pós-scene já canonizado.
+
+Next:
+- recuperar emissor GS do `F3:03` (JoinMapServer) para fechar o fluxo JoinGame sem depender de stubs.
+

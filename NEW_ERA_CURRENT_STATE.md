@@ -581,3 +581,4 @@
 Fronteira: 1.3-R P2 (BOTH_ATTACK1/2 TX olc) CONFIRMADO; Next: commit core + report.
 Fronteira: 1.3-S (RX 0x18/0x19) CONFIRMADO; Next: 1.3-S P2 (parsers RX + golden+loopback).
 Fronteira: 1.3-S P2 (RX 0x18/0x19) CONFIRMADO; Next: commit core + report 1.3-SP2.
+Fronteira: 1.3-T/T2 (ServerVersion F1:00; GS update=502) CONFIRMADO; Next: GS sender F3:03.
