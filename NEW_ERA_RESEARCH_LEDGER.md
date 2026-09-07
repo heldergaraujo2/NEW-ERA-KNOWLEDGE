@@ -1188,3 +1188,27 @@ CONFIRMED:
 Next:
 - decision point: (A) inventário/itens (F3:10 etc.) ou (B) viewport updates adicionais; ou (C) fechar C4 RX.
 
+## 87. FASE 1 — 1.3-V: Inventário (F3:10) — framing C2 + item 12B + emissor GS CONFIRMADOS
+
+Evidence (repo):
+- `EVIDENCE/1.3-V/NEW_ERA_1_3_V_CLIENT_RX_INVENTORY_F3_10_EVIDENCE.md` sha256 `514cbb1ef3b59016d43dbdb395735d8f120aa4fcc3368adf0553fff330f40a8f`
+- `EVIDENCE/1.3-V2/NEW_ERA_1_3_V2_GS_SENDER_F3_10_INVENTORY_EVIDENCE.md` sha256 `8bf3ed79a0b81721180a18fe066e7ff3b6402459571c35b979e849e21b7072aa`
+- `EVIDENCE/1.3-V3/NEW_ERA_1_3_V3_F3_10_HEADER_AND_ENTRY_LAYOUT_EVIDENCE.md` sha256 `738936b44c54868bdfcd6ba2c5210300d8fad3e0f950fe39d3f503564e924513`
+
+CONFIRMED on-wire (GS -> client):
+- `F3:10` (inventário) é pacote **C2** com size **u16 BE**:
+  - `[C2][sizeH][sizeL][F3][10][count] + count * ([slot][ItemInfo(12B)])`
+  - stride por item: 13B.
+- `ItemInfo` tem **12 bytes** (`MAX_ITEM_INFO == PACKET_ITEM_LENGTH == 12`).
+- Emissor GS: `CItemManager::GCItemListSend(aIndex)` (buffer 4096, append items, patch size BE, `DataSend`).
+
+Client RX:
+- `case 0xF3: sub 0x10 -> ReceiveInventory(...)` (retorno checado).
+- `ReceiveInventory` não valida size (confia em count) e roteia por `Index/slot` (equip/inv/shop).
+
+Observação:
+- comentário antigo “8 bytes” no client é stale; o código usa `sizeof(PRECEIVE_INVENTORY)` e o layout real é slot+12B.
+
+Next (P2):
+- criar spec normativa + vectors do `F3:10` (C2 variável) e implementar parser+apply no MVP (inventário mínimo).
+

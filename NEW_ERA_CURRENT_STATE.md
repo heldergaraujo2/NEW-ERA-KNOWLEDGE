@@ -583,3 +583,4 @@ Fronteira: 1.3-S (RX 0x18/0x19) CONFIRMADO; Next: 1.3-S P2 (parsers RX + golden+
 Fronteira: 1.3-S P2 (RX 0x18/0x19) CONFIRMADO; Next: commit core + report 1.3-SP2.
 Fronteira: 1.3-T/T2 (ServerVersion F1:00; GS update=502) CONFIRMADO; Next: GS sender F3:03.
 Fronteira: 1.3-U2 (GS sem F3:03 JoinMapServer; F3:03 é C->S) CONFIRMADO; Next: inventário ou viewport.
+Fronteira: 1.3-V (Inventário F3:10) CONFIRMADO; Next: 1.3-V P2 (spec+vectors+parser+loopback).
