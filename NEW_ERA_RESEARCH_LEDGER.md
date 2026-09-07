@@ -1244,3 +1244,18 @@ CORRECTION / SUPERSEDE (escopo limitado):
 Next:
 - (opcional) evidenciar o on-wire real de `F3:03` (C1 vs C3) e se há camada de encrypt/encapsulamento em `DataSend`.
 
+## 90. FASE 1 — 1.3-X2: DataSend global + NEW_PROTOCOL_SYSTEM=1 (BOTH_MESSAGE) — CONFIRMADO
+
+Evidence (repo):
+- `EVIDENCE/1.3-X2/NEW_ERA_1_3_X2_DATASEND_ROUTING_ONWIRE_EVIDENCE.md` sha256 `2987de9c5bd87db69b9ddf65d717d9b47e1d86a26527eafc18b6f40045447001`
+
+CONFIRMED:
+- `DataSend(int aIndex, BYTE* lpMsg, DWORD size)` (global) **não** transforma C1->C3; ele roteia:
+  - com `NEW_PROTOCOL_SYSTEM=1` -> `gSocketManagerModern.PacketSend(..., BOTH_MESSAGE, lpMsg, size)`
+  - caso contrário -> path legacy (`gSocketManager.DataSend`)
+- Portanto, no pin atual, pacotes clássicos (C1/C2/C3/C4) viajam **íntegros dentro do envelope BOTH_MESSAGE** no transporte moderno.
+- `PSBMSG_HEAD::set` = C1, `setE` = C3; comentários “C3:...” em algumas structs são stale quando o código usa `set()`.
+
+Next:
+- decidir próximo bloco: (A) implementar RX de F3:03 CharacterInfo no MVP (agora sabemos que chega como C1 dentro do BOTH_MESSAGE) ou (B) ir para F3:13 Equipment/CharSet.
+

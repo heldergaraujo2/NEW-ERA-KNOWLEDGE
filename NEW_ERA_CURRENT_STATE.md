@@ -586,3 +586,4 @@ Fronteira: 1.3-U2 (GS sem F3:03 JoinMapServer; F3:03 é C->S) CONFIRMADO; Next: 
 Fronteira: 1.3-V (Inventário F3:10) CONFIRMADO; Next: 1.3-V P2 (spec+vectors+parser+loopback).
 Fronteira: 1.3-V P2 (Inventário F3:10 C2) CONFIRMADO; Next: commit core + report 1.3-VP2.
 Fronteira: 1.3-W/W4 (inventário no login + F3:03 CharacterInfo S->C) CONFIRMADO; Next: RX F3:03 ou F3:13 equipment.
+Fronteira: 1.3-X2 (DataSend roteia; BOTH_MESSAGE) CONFIRMADO; Next: RX F3:03 ou F3:13.
