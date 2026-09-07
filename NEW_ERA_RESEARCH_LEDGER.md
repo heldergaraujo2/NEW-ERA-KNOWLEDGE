@@ -1175,3 +1175,16 @@ CONFIRMED:
 Next:
 - recuperar emissor GS do `F3:03` (JoinMapServer) para fechar o fluxo JoinGame sem depender de stubs.
 
+## 86. FASE 1 — 1.3-U/U2: F3:03 (JoinMapServer) sender no GS — INEXISTENTE NO PIN (CONFIRMADO)
+
+Evidence (repo):
+- `EVIDENCE/1.3-U2/NEW_ERA_1_3_U2_FULLSCAN_GS_F3_03_JOINMAPSERVER_EVIDENCE.md` sha256 `9923ce9790e121acee8f8943f6444c3f86a3b0d7797839fc84ceb2f728570d5c`
+
+CONFIRMED:
+- Não existe emissor GS->client de `F3:03` (JoinMapServer) no pin (fullscan do diretório GameServer).
+- A única ocorrência de `F3:03` no GS é uma struct **client->GS**: `PMSG_CHARACTER_INFO_RECV` (`PSBMSG_HEAD // C1:F3:03` + `name[10]`).
+- Portanto, o handler client-side `ReceiveJoinMapServer (F3:03)` é vestigial neste dialeto (Season 5 / single-GS). O fluxo de JoinGame do MVP não depende dele.
+
+Next:
+- decision point: (A) inventário/itens (F3:10 etc.) ou (B) viewport updates adicionais; ou (C) fechar C4 RX.
+
