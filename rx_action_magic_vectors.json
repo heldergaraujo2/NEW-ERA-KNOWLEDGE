@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "name": "rx_action_magic_vectors",
+    "framing": "C1 fixed size=0x09",
+    "endianness": "BE for 16-bit keys/magic"
+  },
+  "vectors": [
+    {
+      "name": "rx_action_0x18_basic",
+      "expect_ok": true,
+      "frame_hex": "c10918010104780102",
+      "expect": {
+        "head": "0x18",
+        "key": "0x0101",
+        "angle_byte": 4,
+        "angle_deg_legacy": 135,
+        "action": "0x78",
+        "target_key": "0x0102"
+      }
+    },
+    {
+      "name": "rx_magic_0x19_success_basic",
+      "expect_ok": true,
+      "frame_hex": "c10919000901018102",
+      "expect": {
+        "head": "0x19",
+        "magic": "0x0009",
+        "source_key": "0x0101",
+        "target_key": "0x0102",
+        "success": 1
+      }
+    },
+    {
+      "name": "rx_magic_0x19_fail_basic",
+      "expect_ok": true,
+      "frame_hex": "c10919000901010102",
+      "expect": {
+        "head": "0x19",
+        "magic": "0x0009",
+        "source_key": "0x0101",
+        "target_key": "0x0102",
+        "success": 0
+      }
+    }
+  ]
+}
