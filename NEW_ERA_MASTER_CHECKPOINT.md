@@ -252,3 +252,4 @@ FASE 1 (recriação) — 1.3-O/1.3-P/1.3-Q fechados: attack TX 0x11 + skill TX 0
 - Update: 1.3-U2 CONFIRMADO (GS não emite F3:03 JoinMapServer; F3:03 no GS é C->S CharacterInfo); próximo: escolher próximo bloco (inventário ou viewport).
 - Update: 1.3-V CONFIRMADO (inventário F3:10 C2 variável, item 12B, emissor GS identificado); próximo: 1.3-V P2 (spec+vectors+parser+loopback).
 - Update: 1.3-V P2 CONFIRMADO (RX inventário F3:10 C2 variável + golden/negativo + loopback); próximo: commit do core + report 1.3-VP2.
+- Update: 1.3-W/W4 CONFIRMADO (inventário enviado no login; GS envia F3:03 CharacterInfo S->C); próximo: decidir se vamos implementar RX F3:03 ou seguir para F3:13 equipment.

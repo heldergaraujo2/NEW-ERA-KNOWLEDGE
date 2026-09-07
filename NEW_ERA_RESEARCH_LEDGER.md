@@ -1224,3 +1224,23 @@ Next (P2):
 Nota:
 - Existe warning cosmético `-Wtype-limits` por `count > 255` (count é u8). Pode ser ajustado depois (ex.: remover guard ou mudar para `>=`/teto de size).
 
+## 89. FASE 1 — 1.3-W/W4: gatilho do inventário + F3:03 S->C (CharacterInfo) — CONFIRMADO + correção do §86
+
+Evidence (repo):
+- `EVIDENCE/1.3-W/NEW_ERA_1_3_W_GS_CALLERS_GCITEMLISTSEND_EVIDENCE.md` sha256 `156c221147085004741cad14c15eccef19072d53bffdd1d6b4a1ed3f7bf7fc89`
+- `EVIDENCE/1.3-W4/NEW_ERA_1_3_W4_GS_SENDS_F3_03_CHARACTER_INFO_EVIDENCE.md` sha256 `0a2f407f041829e0535f306c4de123c69f5503afd3008befd0bd8a891677b26f`
+- Referência (U2): `EVIDENCE/1.3-U2/NEW_ERA_1_3_U2_FULLSCAN_GS_F3_03_JOINMAPSERVER_EVIDENCE.md` sha256 `9923ce9790e121acee8f8943f6444c3f86a3b0d7797839fc84ceb2f728570d5c`
+
+CONFIRMED:
+- Gatilho de envio do inventário (F3:10): `DGCharacterInfoRecv` chama `GCItemListSend` no fluxo de login/entrada do personagem.
+- O GS envia `F3:03` **S->C** como **CharacterInfo** (`PMSG_CHARACTER_INFO_SEND`) dentro de `DGCharacterInfoRecv`.
+
+CORRECTION / SUPERSEDE (escopo limitado):
+- O §86/U2 continua correto ao dizer que **não existe** `F3:03 JoinMapServer (GS->client)` neste pin.
+- Porém, a afirmação “GS não emite F3:03” é **refutada**: existe `F3:03` S->C (CharacterInfo). Portanto `F3:03` é **bidirecional** neste dialeto:
+  - C->S: `PMSG_CHARACTER_INFO_RECV` (name[10]) — request
+  - S->C: `PMSG_CHARACTER_INFO_SEND` (stats/pos/etc) — response
+
+Next:
+- (opcional) evidenciar o on-wire real de `F3:03` (C1 vs C3) e se há camada de encrypt/encapsulamento em `DataSend`.
+
