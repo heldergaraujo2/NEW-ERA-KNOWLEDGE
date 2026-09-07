@@ -254,3 +254,4 @@ FASE 1 (recriação) — 1.3-O/1.3-P/1.3-Q fechados: attack TX 0x11 + skill TX 0
 - Update: 1.3-V P2 CONFIRMADO (RX inventário F3:10 C2 variável + golden/negativo + loopback); próximo: commit do core + report 1.3-VP2.
 - Update: 1.3-W/W4 CONFIRMADO (inventário enviado no login; GS envia F3:03 CharacterInfo S->C); próximo: decidir se vamos implementar RX F3:03 ou seguir para F3:13 equipment.
 - Update: 1.3-X2 CONFIRMADO (DataSend roteia; NEW_PROTOCOL_SYSTEM=1 encapsula clássico em BOTH_MESSAGE; sem C1->C3); próximo: RX F3:03 ou F3:13.
+- Update: 1.3-Y CONFIRMADO (client RX F3:03 CharacterInfo/JoinMapServer layout completo); próximo: 1.3-Y P2 (spec+vectors+parser+loopback).

@@ -1259,3 +1259,18 @@ CONFIRMED:
 Next:
 - decidir próximo bloco: (A) implementar RX de F3:03 CharacterInfo no MVP (agora sabemos que chega como C1 dentro do BOTH_MESSAGE) ou (B) ir para F3:13 Equipment/CharSet.
 
+## 91. FASE 1 — 1.3-Y: Client RX F3:03 (CharacterInfo / JoinMapServer) — layout completo CONFIRMADO
+
+Evidence (repo):
+- `EVIDENCE/1.3-Y/NEW_ERA_1_3_Y_CLIENT_RX_F3_03_CHARACTER_INFO_EVIDENCE.md` sha256 `9c5071c33b25fa2f37a63deba029d8f62530a65d4a4f703c59fc86a2baa6efff`
+- (GS sender) `EVIDENCE/1.3-W4/NEW_ERA_1_3_W4_GS_SENDS_F3_03_CHARACTER_INFO_EVIDENCE.md` sha256 `0a2f407f041829e0535f306c4de123c69f5503afd3008befd0bd8a891677b26f`
+- (transport) `EVIDENCE/1.3-X2/NEW_ERA_1_3_X2_DATASEND_ROUTING_ONWIRE_EVIDENCE.md` sha256 `2987de9c5bd87db69b9ddf65d717d9b47e1d86a26527eafc18b6f40045447001`
+
+CONFIRMED:
+- `F3:03` S->C é **C1** e é parseado no client por `ReceiveJoinMapServer`.
+- Layout client-side (`PRECEIVE_JOIN_MAP_SERVER`) casa com o GS (`PMSG_CHARACTER_INFO_SEND`): posição (X/Y/Map/Dir), Exp/NextExp 8B BE, stats, vitals, money, PK, ctlcode, fruit points, leadership.
+- No pin (`NEW_PROTOCOL_SYSTEM=1`), o pacote clássico C1 viaja dentro do envelope moderno (`BOTH_MESSAGE`) sem conversão C1->C3.
+
+Next (P2):
+- criar spec+vectors e implementar parser/applier MVP para F3:03 (atualizar estado do personagem) + golden + loopback.
+
