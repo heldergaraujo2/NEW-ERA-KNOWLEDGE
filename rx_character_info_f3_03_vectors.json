@@ -1,0 +1,104 @@
+{
+
+  "meta": {
+
+    "name": "rx_character_info_f3_03_vectors",
+
+    "framing": "C1 fixed size 0x42, head=0xF3 sub=0x03",
+
+    "endianness": {
+
+      "words_dwords": "LE",
+
+      "exp_nextexp": "BE-bytes (manual shifts)"
+
+    }
+
+  },
+
+  "vectors": [
+
+    {
+
+      "name": "charinfo_basic_nontrivial",
+
+      "expect_ok": true,
+
+      "frame_hex": "c142f303323c0003010203040506070811121314151617180b0a341245235634674502010403060508070a090c0b0e0d100f4433221105000102030405060708090a",
+
+      "expect": {
+
+        "x": 50,
+
+        "y": 60,
+
+        "map": 0,
+
+        "dir": 3,
+
+        "exp_u64_hex_be": "0x0102030405060708",
+
+        "next_exp_u64_hex_be": "0x1112131415161718",
+
+        "level_up_point": "0x0A0B",
+
+        "str": "0x1234",
+
+        "dex": "0x2345",
+
+        "vit": "0x3456",
+
+        "ene": "0x4567",
+
+        "life": "0x0102",
+
+        "max_life": "0x0304",
+
+        "mana": "0x0506",
+
+        "max_mana": "0x0708",
+
+        "shield": "0x090A",
+
+        "max_shield": "0x0B0C",
+
+        "bp": "0x0D0E",
+
+        "max_bp": "0x0F10",
+
+        "money": "0x11223344",
+
+        "pk": 5,
+
+        "ctl": 0,
+
+        "add_point": "0x0201",
+
+        "max_add_point": "0x0403",
+
+        "leadership": "0x0605",
+
+        "minus_point": "0x0807",
+
+        "max_minus_point": "0x0A09"
+
+      }
+
+    },
+
+    {
+
+      "name": "charinfo_size_mismatch_invalid",
+
+      "expect_ok": false,
+
+      "frame_hex": "c141f303323c0003010203040506070811121314151617180b0a341245235634674502010403060508070a090c0b0e0d100f4433221105000102030405060708090a",
+
+      "notes": "size byte diz 0x41 mas o frame tem 0x42 bytes; parser deve rejeitar"
+
+    }
+
+  ]
+
+}
+
