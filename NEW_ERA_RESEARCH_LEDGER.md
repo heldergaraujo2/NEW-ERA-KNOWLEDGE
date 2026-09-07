@@ -1212,3 +1212,15 @@ Observação:
 Next (P2):
 - criar spec normativa + vectors do `F3:10` (C2 variável) e implementar parser+apply no MVP (inventário mínimo).
 
+## 88. FASE 1 — 1.3-V P2: RX Inventário F3:10 (C2 variável) — GOLDEN + LOOPBACK OK (CONFIRMADO)
+
+- Report: `EVIDENCE/1.3-VP2/NEW_ERA_1_3_VP2_RX_INVENTORY_F3_10_LOOPBACK_REPORT.md` sha256 `a3b466c4c1d233780deb2cc2e6aebfb1d3a043c637196d6334ad43eaad597338`
+- Parser no core: `ParseFrame_InventoryF3_10_C2`
+  - framing: `[C2][size u16 BE][F3][10][count] + count*([slot][ItemInfo 12B])`
+  - guards: `size==len`, `size==6+13*count`, head/sub, teto local; aceita count=0
+  - valida também caso negativo (size mismatch) -> reject
+- Loopback: sequência válido -> inválido -> válido no mesmo socket (rejeita sem quebrar).
+
+Nota:
+- Existe warning cosmético `-Wtype-limits` por `count > 255` (count é u8). Pode ser ajustado depois (ex.: remover guard ou mudar para `>=`/teto de size).
+

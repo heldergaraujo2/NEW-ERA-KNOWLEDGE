@@ -1889,7 +1889,78 @@ static bool ParseFrame_MagicRx_C1(const std::vector<uint8_t>& frame, MagicEvent*
     out->targetKey = (targetWord & 0x7FFF);
 
     return true;
+}// ============================================================================
+// 1.3-V P2 (core) — RX parser: Inventário F3:10 (C2 variável)
+// Source: NEW_ERA_PROTOCOL_MVP_RX_INVENTORY_F3_10_SPEC.md
+// Notes:
+// - Não altera WorldState/EntityRecord (ODR mirrors em harnesses).
+// - Parser aplica guards fortes (legacy não valida tamanho).
+// ============================================================================
+
+struct InventoryF3_10_Entry
+{
+    uint8_t slot = 0;
+    uint8_t itemInfo[12] = {};
+};
+
+struct InventoryF3_10_Event
+{
+    uint8_t count = 0;
+    std::vector<InventoryF3_10_Entry> entries;
+};
+
+static bool ParseFrame_InventoryF3_10_C2(const std::vector<uint8_t>& frame, InventoryF3_10_Event* out, std::string* err)
+{
+    if (!out) { if (err) *err = "out=null"; return false; }
+    out->count = 0;
+    out->entries.clear();
+
+    // Guards mínimos
+    if (frame.size() < 6) { if (err) *err = "frame too small (<6)"; return false; }
+    if (frame[0] != 0xC2) { if (err) *err = "not C2"; return false; }
+
+    // size u16 BE (total do pacote)
+    const uint16_t sizeBE = ReadU16BE(frame, 1);
+    if (sizeBE < 6) { if (err) *err = "sizeBE < 6"; return false; }
+    if (frame.size() != sizeBE) { if (err) *err = "sizeBE != frame.size()"; return false; }
+
+    // head/sub
+    if (frame[3] != 0xF3) { if (err) *err = "head != 0xF3"; return false; }
+    if (frame[4] != 0x10) { if (err) *err = "sub != 0x10"; return false; }
+
+    const uint8_t count = frame[5];
+
+    // Teto local seguro (normativo)
+    if (count > 255) { if (err) *err = "count > 255"; return false; }
+    if (frame.size() > 4096) { if (err) *err = "frame > 4096"; return false; }
+
+    // Consistência do tamanho: size == 6 + 13*count
+    const size_t expected = 6u + 13u * static_cast<size_t>(count);
+    if (frame.size() != expected)
+    {
+        if (err) *err = "size mismatch: expected 6+13*count";
+        return false;
+    }
+
+    out->count = count;
+    out->entries.reserve(count);
+
+    size_t off = 6;
+    for (size_t i = 0; i < count; ++i)
+    {
+        InventoryF3_10_Entry e{};
+        e.slot = frame[off + 0];
+        for (int k = 0; k < 12; ++k)
+            e.itemInfo[k] = frame[off + 1 + static_cast<size_t>(k)];
+
+        out->entries.push_back(e);
+        off += 13;
+    }
+
+    return true;
 }
+
+
 
 
 
