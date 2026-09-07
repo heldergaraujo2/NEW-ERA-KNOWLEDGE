@@ -1148,3 +1148,14 @@ GS emitters (broadcast viewport + envio ao caster):
 
 Next (P2): implementar parsers RX 0x18/0x19 no motor mínimo de WorldState (aplicar anim/skill event) + golden + loopback.
 
+## 84. FASE 1 — 1.3-S P2: RX 0x18/0x19 parsers (core) — GOLDEN + LOOPBACK OK (CONFIRMADO)
+
+- Report: `EVIDENCE/1.3-SP2/NEW_ERA_1_3_SP2_RX_ACTION_MAGIC_LOOPBACK_REPORT.md` sha256 `37c0887532802fea3328827af7bcbfab20537de62554fbb0359aaccaf6fdb602`
+- Parsers adicionados no core:
+  - `ParseFrame_ActionRx_C1` (C1 size=0x09 head=0x18) + guard `angleByte 1..8` => `angleDeg=(a-1)*45`
+  - `ParseFrame_MagicRx_C1` (C1 size=0x09 head=0x19) => `magic/sourceKey` BE + `targetWord`: `success=b15`, `targetKey&0x7FFF`
+- Golden check: asserts campo-a-campo contra `rx_action_magic_vectors.json`
+- Loopback real: stub GS envia 3 frames (9B) e client parseia/asserte com sucesso.
+
+Next: stage/commit/push do core (`mvp_login_client.cpp`) + report 1.3-SP2; depois escolher próximo bloco (inventário/itens ou viewport updates adicionais).
+

@@ -247,3 +247,4 @@ FASE 1 (recriação) — 1.3-O/1.3-P/1.3-Q fechados: attack TX 0x11 + skill TX 0
 - Update: 1.3-R confirmado (BOTH_ATTACK1/2 bodies); próximo: 1.3-R P2 (builders+golden+loopback).
 - Update: 1.3-R P2 CONFIRMADO (golden+loopback BOTH_ATTACK1/2 TX olc); próximo: commit do core + report 1.3-RP2.
 - Update: 1.3-S CONFIRMADO (RX 0x18 action + 0x19 magic on-wire + emissores GS); próximo: 1.3-S P2 (parsers RX + golden+loopback).
+- Update: 1.3-S P2 CONFIRMADO (RX 0x18/0x19 parsers + golden+loopback); próximo: commit do core + report 1.3-SP2.

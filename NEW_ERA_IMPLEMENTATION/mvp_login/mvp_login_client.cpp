@@ -1815,7 +1815,83 @@ static bool BuildAsio_BOTH_ATTACK2_Wire(
     out->push_back(y);
 
     return true;
+}// ============================================================================
+// 1.3-S P2 (core) — RX parsers: 0x18 (Action) + 0x19 (Magic)
+// Source: NEW_ERA_PROTOCOL_MVP_RX_ACTION_MAGIC_SPEC.md
+// Notes:
+// - Não altera WorldState/EntityRecord (ODR mirrors em harnesses).
+// - Parsers aplicam guards fortes (diferente do legado).
+// ============================================================================
+
+struct ActionEvent
+{
+    uint16_t key = 0;
+    uint16_t targetKey = 0;
+    uint8_t angleByte = 0;   // legacy: 1..8
+    int angleDeg = 0;        // legacy: (angleByte-1)*45
+    uint8_t action = 0;      // AT_* (ex.: 0x78)
+};
+
+struct MagicEvent
+{
+    uint16_t magic = 0;
+    uint16_t sourceKey = 0;
+    uint16_t targetKey = 0;  // masked & 0x7FFF
+    bool success = false;    // targetWord bit15
+};
+
+static inline uint16_t ReadU16BE(const std::vector<uint8_t>& v, size_t off)
+{
+    return (static_cast<uint16_t>(v[off]) << 8) | static_cast<uint16_t>(v[off + 1]);
 }
+
+static bool ParseFrame_ActionRx_C1(const std::vector<uint8_t>& frame, ActionEvent* out, std::string* err)
+{
+    if (!out) { if (err) *err = "out=null"; return false; }
+
+    // C1 basic guard
+    if (frame.size() < 4) { if (err) *err = "frame too small"; return false; }
+    if (frame[0] != 0xC1) { if (err) *err = "not C1"; return false; }
+    if (frame[1] != 0x09) { if (err) *err = "C1 size != 0x09"; return false; }
+    if (frame.size() != 0x09) { if (err) *err = "vector size != 0x09"; return false; }
+    if (frame[2] != 0x18) { if (err) *err = "head != 0x18"; return false; }
+
+    // body: KeyH KeyL Angle Action TargetKeyH TargetKeyL
+    out->key = ReadU16BE(frame, 3);
+    out->angleByte = frame[5];
+    out->action = frame[6];
+    out->targetKey = ReadU16BE(frame, 7);
+
+    // legacy mapping: 1..8 => 0..315 step 45
+    if (out->angleByte == 0 || out->angleByte > 8) { if (err) *err = "angleByte out of range (1..8)"; return false; }
+    out->angleDeg = static_cast<int>(out->angleByte - 1) * 45;
+
+    return true;
+}
+
+static bool ParseFrame_MagicRx_C1(const std::vector<uint8_t>& frame, MagicEvent* out, std::string* err)
+{
+    if (!out) { if (err) *err = "out=null"; return false; }
+
+    // C1 basic guard
+    if (frame.size() < 4) { if (err) *err = "frame too small"; return false; }
+    if (frame[0] != 0xC1) { if (err) *err = "not C1"; return false; }
+    if (frame[1] != 0x09) { if (err) *err = "C1 size != 0x09"; return false; }
+    if (frame.size() != 0x09) { if (err) *err = "vector size != 0x09"; return false; }
+    if (frame[2] != 0x19) { if (err) *err = "head != 0x19"; return false; }
+
+    // body (<701 / client pinado): MagicH MagicL SourceKeyH SourceKeyL TargetWord
+    out->magic = ReadU16BE(frame, 3);
+    out->sourceKey = ReadU16BE(frame, 5);
+
+    const uint16_t targetWord = ReadU16BE(frame, 7);
+    out->success = ((targetWord >> 15) & 1) != 0;
+    out->targetKey = (targetWord & 0x7FFF);
+
+    return true;
+}
+
+
 
 
 } } // namespace newera::mvp (bloco 1.3-O)
