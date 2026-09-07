@@ -1274,3 +1274,15 @@ CONFIRMED:
 Next (P2):
 - criar spec+vectors e implementar parser/applier MVP para F3:03 (atualizar estado do personagem) + golden + loopback.
 
+## 92. FASE 1 — 1.3-Y P2: RX F3:03 CharacterInfo — GOLDEN + LOOPBACK OK (CONFIRMADO)
+
+- Report: `EVIDENCE/1.3-YP2/NEW_ERA_1_3_YP2_RX_CHARACTER_INFO_F3_03_LOOPBACK_REPORT.md` sha256 `db1d0291985acafb2122e7d366b3beb81a2ebb8b4ce24eb52108cee6e0bbf33d`
+- Parser no core: `ParseFrame_CharacterInfo_F3_03_C1`
+  - framing: `C1 0x42 F3 03` (66B fixo)
+  - endianness: WORD/DWORD LE; Exp/NextExp 8B BE-bytes
+  - valida também caso negativo (size mismatch) -> reject
+- Loopback: sequência válido -> inválido -> válido no mesmo socket (rejeita sem quebrar).
+
+Next:
+- stage/commit/push do core (`mvp_login_client.cpp`) + report 1.3-YP2; depois decidir próximo bloco (F3:13 equipment/charset ou F3:14 modify).
+

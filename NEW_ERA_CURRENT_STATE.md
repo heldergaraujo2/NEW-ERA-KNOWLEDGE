@@ -588,3 +588,4 @@ Fronteira: 1.3-V P2 (Inventário F3:10 C2) CONFIRMADO; Next: commit core + repor
 Fronteira: 1.3-W/W4 (inventário no login + F3:03 CharacterInfo S->C) CONFIRMADO; Next: RX F3:03 ou F3:13 equipment.
 Fronteira: 1.3-X2 (DataSend roteia; BOTH_MESSAGE) CONFIRMADO; Next: RX F3:03 ou F3:13.
 Fronteira: 1.3-Y (RX F3:03 CharacterInfo) CONFIRMADO; Next: 1.3-Y P2.
+Fronteira: 1.3-Y P2 (RX F3:03 CharacterInfo) CONFIRMADO; Next: commit core + report 1.3-YP2.

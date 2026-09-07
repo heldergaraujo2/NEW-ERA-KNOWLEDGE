@@ -1958,7 +1958,121 @@ static bool ParseFrame_InventoryF3_10_C2(const std::vector<uint8_t>& frame, Inve
     }
 
     return true;
+}// ============================================================================
+// 1.3-Y P2 (core) — RX parser: F3:03 CharacterInfo (ReceiveJoinMapServer)
+// Source: NEW_ERA_PROTOCOL_MVP_RX_CHARACTER_INFO_F3_03_SPEC.md
+// Notes:
+// - Não altera WorldState/EntityRecord (ODR mirrors em harnesses).
+// - Endianness: WORD/DWORD LE; Exp/NextExp = 8 bytes BE-bytes.
+// ============================================================================
+
+struct CharacterInfoF3_03_Event
+{
+    uint8_t x = 0;
+    uint8_t y = 0;
+    uint8_t map = 0;
+    uint8_t dir = 0;
+
+    uint64_t exp = 0;
+    uint64_t nextExp = 0;
+
+    uint16_t levelUpPoint = 0;
+    uint16_t str = 0;
+    uint16_t dex = 0;
+    uint16_t vit = 0;
+    uint16_t ene = 0;
+
+    uint16_t life = 0;
+    uint16_t maxLife = 0;
+    uint16_t mana = 0;
+    uint16_t maxMana = 0;
+    uint16_t shield = 0;
+    uint16_t maxShield = 0;
+    uint16_t bp = 0;
+    uint16_t maxBp = 0;
+
+    uint32_t money = 0;
+    uint8_t pk = 0;
+    uint8_t ctl = 0;
+
+    uint16_t addPoint = 0;
+    uint16_t maxAddPoint = 0;
+    uint16_t leadership = 0;
+    uint16_t minusPoint = 0;
+    uint16_t maxMinusPoint = 0;
+};
+
+static inline uint16_t ReadU16LE(const std::vector<uint8_t>& v, size_t off)
+{
+    return static_cast<uint16_t>(v[off]) | (static_cast<uint16_t>(v[off + 1]) << 8);
 }
+
+static inline uint32_t ReadU32LE(const std::vector<uint8_t>& v, size_t off)
+{
+    return static_cast<uint32_t>(v[off]) |
+           (static_cast<uint32_t>(v[off + 1]) << 8) |
+           (static_cast<uint32_t>(v[off + 2]) << 16) |
+           (static_cast<uint32_t>(v[off + 3]) << 24);
+}
+
+static inline uint64_t ReadU64BE_Bytes(const std::vector<uint8_t>& v, size_t off)
+{
+    uint64_t x = 0;
+    for (size_t i = 0; i < 8; ++i)
+        x = (x << 8) | static_cast<uint64_t>(v[off + i]);
+    return x;
+}
+
+static bool ParseFrame_CharacterInfo_F3_03_C1(const std::vector<uint8_t>& frame, CharacterInfoF3_03_Event* out, std::string* err)
+{
+    if (!out) { if (err) *err = "out=null"; return false; }
+    *out = CharacterInfoF3_03_Event{};
+
+    // Guards normativos
+    if (frame.size() < 4) { if (err) *err = "frame too small"; return false; }
+    if (frame[0] != 0xC1) { if (err) *err = "not C1"; return false; }
+    if (frame[1] != 0x42) { if (err) *err = "C1 size != 0x42"; return false; }
+    if (frame.size() != 0x42) { if (err) *err = "vector size != 0x42"; return false; }
+    if (frame[2] != 0xF3) { if (err) *err = "head != 0xF3"; return false; }
+    if (frame[3] != 0x03) { if (err) *err = "sub != 0x03"; return false; }
+
+    out->x = frame[4];
+    out->y = frame[5];
+    out->map = frame[6];
+    out->dir = frame[7];
+
+    out->exp = ReadU64BE_Bytes(frame, 8);
+    out->nextExp = ReadU64BE_Bytes(frame, 16);
+
+    out->levelUpPoint = ReadU16LE(frame, 24);
+    out->str = ReadU16LE(frame, 26);
+    out->dex = ReadU16LE(frame, 28);
+    out->vit = ReadU16LE(frame, 30);
+    out->ene = ReadU16LE(frame, 32);
+
+    out->life = ReadU16LE(frame, 34);
+    out->maxLife = ReadU16LE(frame, 36);
+    out->mana = ReadU16LE(frame, 38);
+    out->maxMana = ReadU16LE(frame, 40);
+    out->shield = ReadU16LE(frame, 42);
+    out->maxShield = ReadU16LE(frame, 44);
+    out->bp = ReadU16LE(frame, 46);
+    out->maxBp = ReadU16LE(frame, 48);
+
+    out->money = ReadU32LE(frame, 50);
+    out->pk = frame[54];
+    out->ctl = frame[55];
+
+    out->addPoint = ReadU16LE(frame, 56);
+    out->maxAddPoint = ReadU16LE(frame, 58);
+    out->leadership = ReadU16LE(frame, 60);
+    out->minusPoint = ReadU16LE(frame, 62);
+    out->maxMinusPoint = ReadU16LE(frame, 64);
+
+    return true;
+}
+
+
 
 
 
