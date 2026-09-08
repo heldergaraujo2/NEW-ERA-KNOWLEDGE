@@ -1308,3 +1308,20 @@ Next (P2):
 - criar spec+vectors e implementar parser/applier MVP para F3:13 (atualizar aparência de entidades no WorldState) + golden + loopback.
 - (opcional) evidenciar o comportamento de `MsgSendV2` (scope do broadcast).
 
+**Entry 94 — FASE 1 / INFRA — INFRA-TS-2 (2026-09-08) — NEW-ERA Test Server**
+
+- Entrega: servidor de teste (laboratório), não MU completo, para validar o MVP NEW-ERA em sessão TCP real no Windows 11.
+- Transporte: envelope moderno `id:u16 LE + size:u32 LE` (6 bytes) + body.
+- Túnel: suporte a `BOTH_MESSAGE (0x000C)` carregando frames clássicos C1/C2/C3/C4 no body.
+- TS-2 (scriptado): após o 1º RX do cliente, envia (S→C) frames clássicos encapsulados em BOTH_MESSAGE, carregados dos JSON normativos (`frame_hex`):
+  - F3:03 CharacterInfo — vector `charinfo_basic_nontrivial` (`rx_character_info_f3_03_vectors.json`)
+  - F3:10 Inventory count=1 — vector `inv_f3_10_count1_slot0_pattern` (`rx_inventory_f3_10_vectors.json`)
+  - F3:10 Inventory count=0 — vector `inv_f3_10_count0_empty` (`rx_inventory_f3_10_vectors.json`)
+- Robustez: clamp de `size` moderno (u32) em 256 KiB; disconnect em size absurdo/EOF/leitura curta.
+- Código:
+  - `NEW_ERA_IMPLEMENTATION/test_server/new_era_test_server.cpp`
+  - `NEW_ERA_IMPLEMENTATION/test_server/CMakeLists.txt`
+  - `NEW_ERA_IMPLEMENTATION/test_server/README.md`
+- Evidência:
+  - `EVIDENCE/test_server/TS-2_scripted_vectors/REPORT.md`
+

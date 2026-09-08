@@ -590,3 +590,26 @@ Fronteira: 1.3-X2 (DataSend roteia; BOTH_MESSAGE) CONFIRMADO; Next: RX F3:03 ou 
 Fronteira: 1.3-Y (RX F3:03 CharacterInfo) CONFIRMADO; Next: 1.3-Y P2.
 Fronteira: 1.3-Y P2 (RX F3:03 CharacterInfo) CONFIRMADO; Next: commit core + report 1.3-YP2.
 Fronteira: 1.3-Z (F3:13 Equipment/CharSet) CONFIRMADO; Next: 1.3-Z P2.
+
+---
+
+## INFRA-TS-2 (2026-09-08) — NEW-ERA Test Server (online lab)
+
+Entrega de um **servidor de teste** (não MU completo) para validar o MVP NEW-ERA em sessão TCP real, falando o envelope moderno e tunelando frames clássicos via `BOTH_MESSAGE (0x000C)`.
+
+- Implementação:
+  - `NEW_ERA_IMPLEMENTATION/test_server/new_era_test_server.cpp`
+  - `NEW_ERA_IMPLEMENTATION/test_server/CMakeLists.txt`
+  - `NEW_ERA_IMPLEMENTATION/test_server/README.md`
+- Evidência:
+  - `EVIDENCE/test_server/TS-2_scripted_vectors/REPORT.md`
+
+### Comportamento (TS-2)
+Após receber o **primeiro** pacote do cliente, envia (server→client), encapsulados em `BOTH_MESSAGE (0x000C)`, frames clássicos carregados dos JSON normativos (`frame_hex`):
+- F3:03 CharacterInfo `charinfo_basic_nontrivial` em `rx_character_info_f3_03_vectors.json`
+- F3:10 Inventory count=1 `inv_f3_10_count1_slot0_pattern` em `rx_inventory_f3_10_vectors.json`
+- F3:10 Inventory count=0 `inv_f3_10_count0_empty` em `rx_inventory_f3_10_vectors.json`
+
+### Robustez
+- clamp de `size` moderno (u32) em 256 KiB; disconnect em size absurdo/EOF/leitura curta.
+

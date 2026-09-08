@@ -257,3 +257,19 @@ FASE 1 (recriação) — 1.3-O/1.3-P/1.3-Q fechados: attack TX 0x11 + skill TX 0
 - Update: 1.3-Y CONFIRMADO (client RX F3:03 CharacterInfo/JoinMapServer layout completo); próximo: 1.3-Y P2 (spec+vectors+parser+loopback).
 - Update: 1.3-Y P2 CONFIRMADO (RX F3:03 CharacterInfo parser + golden/negativo + loopback); próximo: commit do core + report 1.3-YP2.
 - Update: 1.3-Z CONFIRMADO (F3:13 Equipment/CharSet layout+emissor+handler); próximo: 1.3-Z P2 (spec+vectors+parser+loopback).
+
+---
+
+## INFRA-TS-2 (2026-09-08) — NEW-ERA Test Server (online lab)
+
+Entrega de um executável de **Test Server** para validar o MVP NEW-ERA "ao vivo" por TCP, falando envelope moderno `id:u16 LE + size:u32 LE` e tunelando frames clássicos via `BOTH_MESSAGE (0x000C)`.
+
+- Código:
+  - `NEW_ERA_IMPLEMENTATION/test_server/new_era_test_server.cpp`
+  - `NEW_ERA_IMPLEMENTATION/test_server/CMakeLists.txt`
+  - `NEW_ERA_IMPLEMENTATION/test_server/README.md`
+- Evidência:
+  - `EVIDENCE/test_server/TS-2_scripted_vectors/REPORT.md`
+
+Comportamento TS-2: após o 1º RX do cliente, envia (S→C) frames clássicos encapsulados em BOTH_MESSAGE carregados dos JSON normativos: F3:03 (CharacterInfo) + F3:10 (Inventory count1) + F3:10 (Inventory count0).
+
