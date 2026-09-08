@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "name": "rx_equipment_f3_13_vectors",
+    "framing": "C1 fixed size 0x18, head=0xF3 sub=0x13",
+    "endianness": {
+      "index_u16": "BE"
+    },
+    "payload": {
+      "charset_bytes": 18,
+      "equipment_bytes": 17
+    }
+  },
+  "vectors": [
+    {
+      "name": "equip_f3_13_basic",
+      "expect_ok": true,
+      "frame_hex": "c118f3130101000102030405060708090a0b0c0d0e0f1011",
+      "expect": {
+        "index": "0x0101",
+        "charset_hex": "000102030405060708090a0b0c0d0e0f1011",
+        "class_byte": "0x00",
+        "equipment17_hex": "0102030405060708090a0b0c0d0e0f1011"
+      },
+      "notes": "CharSet[0]=00; Equipment[17]=01..11"
+    },
+    {
+      "name": "equip_f3_13_size_mismatch_invalid",
+      "expect_ok": false,
+      "frame_hex": "c117f3130101000102030405060708090a0b0c0d0e0f1011",
+      "notes": "size byte 0x17 != len(0x18)"
+    }
+  ]
+}
