@@ -256,3 +256,4 @@ FASE 1 (recriação) — 1.3-O/1.3-P/1.3-Q fechados: attack TX 0x11 + skill TX 0
 - Update: 1.3-X2 CONFIRMADO (DataSend roteia; NEW_PROTOCOL_SYSTEM=1 encapsula clássico em BOTH_MESSAGE; sem C1->C3); próximo: RX F3:03 ou F3:13.
 - Update: 1.3-Y CONFIRMADO (client RX F3:03 CharacterInfo/JoinMapServer layout completo); próximo: 1.3-Y P2 (spec+vectors+parser+loopback).
 - Update: 1.3-Y P2 CONFIRMADO (RX F3:03 CharacterInfo parser + golden/negativo + loopback); próximo: commit do core + report 1.3-YP2.
+- Update: 1.3-Z CONFIRMADO (F3:13 Equipment/CharSet layout+emissor+handler); próximo: 1.3-Z P2 (spec+vectors+parser+loopback).

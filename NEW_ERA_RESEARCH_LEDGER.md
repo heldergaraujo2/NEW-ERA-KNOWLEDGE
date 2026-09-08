@@ -1286,3 +1286,25 @@ Next (P2):
 Next:
 - stage/commit/push do core (`mvp_login_client.cpp`) + report 1.3-YP2; depois decidir próximo bloco (F3:13 equipment/charset ou F3:14 modify).
 
+## 93. FASE 1 — 1.3-Z: F3:13 Equipment/CharSet (aparência) — layout + emissor GS + handler client CONFIRMADOS
+
+Evidence (repo):
+- `EVIDENCE/1.3-Z/NEW_ERA_1_3_Z_F3_13_EQUIPMENT_CHARSET_EVIDENCE.md` sha256 `c20802906bcb98166fa72dbe020a51e79b67fe9386e2826f4dadffabec242d22`
+
+CONFIRMED on-wire (GS -> client):
+- `F3:13` é pacote C1 fixo de 24B:
+  - `[C1][0x18][F3][13][index u16 BE][CharSet 18B]`
+- Emissor GS: `GCItemEquipmentSend` usa `MsgSendV2` (broadcast).
+
+Client RX:
+- Dispatch: `case 0xF3 -> sub 0x13 -> ReceiveEquipment(...)`
+- Handler: `ReceiveEquipment` chama `ChangeCharacterExt(idx, Equipment)`.
+
+Nuance (importante para o MVP):
+- O GS envia `CharSet[18]`.
+- O client modela como `Class + Equipment[17]` (na prática, `Equipment` = `CharSet[1..17]`; `CharSet[0]` é consumido/guardado como Class mas não é usado no handler).
+
+Next (P2):
+- criar spec+vectors e implementar parser/applier MVP para F3:13 (atualizar aparência de entidades no WorldState) + golden + loopback.
+- (opcional) evidenciar o comportamento de `MsgSendV2` (scope do broadcast).
+
