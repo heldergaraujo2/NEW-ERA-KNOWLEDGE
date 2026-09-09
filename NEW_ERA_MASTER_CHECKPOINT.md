@@ -273,3 +273,17 @@ Entrega de um executável de **Test Server** para validar o MVP NEW-ERA "ao vivo
 
 Comportamento TS-2: após o 1º RX do cliente, envia (S→C) frames clássicos encapsulados em BOTH_MESSAGE carregados dos JSON normativos: F3:03 (CharacterInfo) + F3:10 (Inventory count1) + F3:10 (Inventory count0).
 
+
+---
+
+## INFRA-WIN-1 (2026-09-09) - MVP client harness Windows (Winsock) + parsers ao vivo
+
+Harness Windows (MSVC/Winsock) que conecta no NEW-ERA Test Server e valida parsers MVP (F3:03 e F3:10) ao vivo via BOTH_MESSAGE (0x000C).
+
+- Codigo:
+  - NEW_ERA_IMPLEMENTATION/mvp_login/win_client/win_client.cpp
+  - NEW_ERA_IMPLEMENTATION/mvp_login/win_client/CMakeLists.txt
+- Evidencia:
+  - EVIDENCE/win_client/WIN-1_mvp_parsers_over_tcp/REPORT.md
+
+- Nota: build/ foi adicionado ao .gitignore (artefato local).

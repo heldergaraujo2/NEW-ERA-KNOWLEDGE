@@ -7,3 +7,7 @@ NEW_ERA_IMPLEMENTATION/mvp_login/keys/*.dat
 **/*.obj
 **/*.exe
 **/a.out
+
+# Local build outputs
+/build/
+

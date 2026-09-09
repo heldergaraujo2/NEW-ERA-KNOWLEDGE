@@ -613,3 +613,22 @@ Após receber o **primeiro** pacote do cliente, envia (server→client), encapsu
 ### Robustez
 - clamp de `size` moderno (u32) em 256 KiB; disconnect em size absurdo/EOF/leitura curta.
 
+
+---
+
+## INFRA-WIN-1 (2026-09-09) — MVP client harness Windows (Winsock) + parsers ao vivo
+
+Entrega de um harness Windows (MSVC/Winsock) que conecta no NEW-ERA Test Server e valida, em sessão TCP real, os parsers MVP existentes para frames clássicos tunelados por BOTH_MESSAGE (0x000C).
+
+- Código:
+  - NEW_ERA_IMPLEMENTATION/mvp_login/win_client/win_client.cpp
+  - NEW_ERA_IMPLEMENTATION/mvp_login/win_client/CMakeLists.txt
+- Evidência:
+  - EVIDENCE/win_client/WIN-1_mvp_parsers_over_tcp/REPORT.md
+
+### Resultado (WIN-1)
+- RX BOTH_MESSAGE (0x000C) / classic C1 F3:03 -> ParseFrame_CharacterInfo_F3_03_C1 OK
+- RX BOTH_MESSAGE (0x000C) / classic C2 F3:10 -> ParseFrame_InventoryF3_10_C2 OK (count=1 e count=0)
+
+### Nota
+- build/ é output local e foi adicionado ao .gitignore.

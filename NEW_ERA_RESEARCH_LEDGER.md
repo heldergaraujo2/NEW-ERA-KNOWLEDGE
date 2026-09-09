@@ -1325,3 +1325,18 @@ Next (P2):
 - Evidência:
   - `EVIDENCE/test_server/TS-2_scripted_vectors/REPORT.md`
 
+
+**Entry 95 — FASE 1 / INFRA — INFRA-WIN-1 (2026-09-09) — MVP client harness Windows (Winsock) + parsers ao vivo**
+
+- Entrega: harness Windows (MSVC/Winsock) para validar o core MVP em sessão TCP real contra o NEW-ERA Test Server.
+- Transporte: lê o envelope moderno (id:u16 LE + size:u32 LE) e trata BOTH_MESSAGE (0x000C) como túnel de frame clássico.
+- Resultado: parse ao vivo confirmado:
+  - F3:03 CharacterInfo (C1) -> ParseFrame_CharacterInfo_F3_03_C1 OK
+  - F3:10 Inventory (C2) -> ParseFrame_InventoryF3_10_C2 OK (count=1 e count=0)
+- Código:
+  - NEW_ERA_IMPLEMENTATION/mvp_login/win_client/win_client.cpp
+  - NEW_ERA_IMPLEMENTATION/mvp_login/win_client/CMakeLists.txt
+- Evidência:
+  - EVIDENCE/win_client/WIN-1_mvp_parsers_over_tcp/REPORT.md
+- Governança: bloco INFRA-WIN-1 registrado em CURRENT_STATE e MASTER_CHECKPOINT.
+- Nota infra: build/ adicionado ao .gitignore (artefato local).
