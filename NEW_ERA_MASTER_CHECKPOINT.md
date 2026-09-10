@@ -287,3 +287,12 @@ Harness Windows (MSVC/Winsock) que conecta no NEW-ERA Test Server e valida parse
   - EVIDENCE/win_client/WIN-1_mvp_parsers_over_tcp/REPORT.md
 
 - Nota: build/ foi adicionado ao .gitignore (artefato local).
+
+---
+
+## INFRA-TS-3 (2026-09-10) - Test Server multi-accept
+
+Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente, retorna ao accept e permanece rodando.
+
+- Codigo: NEW_ERA_IMPLEMENTATION/test_server/new_era_test_server.cpp
+- Evidencia: EVIDENCE/test_server/TS-3_multi_accept/REPORT.md

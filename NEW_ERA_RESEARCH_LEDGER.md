@@ -1340,3 +1340,12 @@ Next (P2):
   - EVIDENCE/win_client/WIN-1_mvp_parsers_over_tcp/REPORT.md
 - Governança: bloco INFRA-WIN-1 registrado em CURRENT_STATE e MASTER_CHECKPOINT.
 - Nota infra: build/ adicionado ao .gitignore (artefato local).
+
+**Entry 96 — FASE 1 / INFRA — INFRA-TS-3 (2026-09-10) — Test Server multi-accept (nao encerra apos 1 cliente)**
+
+- Entrega: melhoria do NEW-ERA Test Server para permitir repeticao de testes sem reiniciar o processo.
+- Mudanca: servidor entra em loop de accept; ao desconectar o cliente, fecha o socket do cliente e volta a aceitar outro.
+- Codigo:
+  - NEW_ERA_IMPLEMENTATION/test_server/new_era_test_server.cpp
+- Evidencia:
+  - EVIDENCE/test_server/TS-3_multi_accept/REPORT.md

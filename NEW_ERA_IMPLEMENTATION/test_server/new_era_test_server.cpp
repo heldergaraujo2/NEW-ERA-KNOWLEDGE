@@ -346,6 +346,7 @@ int main(int argc, char** argv) {
 
   std::cout << "[NEW-ERA TS] Listening on 0.0.0.0:" << port << " ...\n";
   std::cout << "[NEW-ERA TS] repoRoot=" << repoRoot << "\n";
+  for (;;) {
 
   sockaddr_in peer{};
 #ifdef _WIN32
@@ -452,6 +453,9 @@ int main(int argc, char** argv) {
   }
 
   CloseSocket(cs);
+  std::cout << "[NEW-ERA TS] Client disconnected\n";
+  }
+
   CloseSocket(ls);
   SocketShutdown();
   return 0;

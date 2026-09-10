@@ -632,3 +632,14 @@ Entrega de um harness Windows (MSVC/Winsock) que conecta no NEW-ERA Test Server 
 
 ### Nota
 - build/ é output local e foi adicionado ao .gitignore.
+
+---
+
+## INFRA-TS-3 (2026-09-10) - Test Server multi-accept (nao encerra apos 1 cliente)
+
+O NEW-ERA Test Server agora aceita clientes em loop: ao desconectar, fecha o socket do cliente e volta a fazer accept, permitindo repetir testes sem reiniciar.
+
+- Codigo:
+  - NEW_ERA_IMPLEMENTATION/test_server/new_era_test_server.cpp
+- Evidencia:
+  - EVIDENCE/test_server/TS-3_multi_accept/REPORT.md
