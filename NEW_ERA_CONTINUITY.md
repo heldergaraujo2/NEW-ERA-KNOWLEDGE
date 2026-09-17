@@ -5,40 +5,36 @@
 - Our reconstruction: `heldergaraujo2/NEW-ERA-KNOWLEDGE`.
 
 ## Current completed objective
+### INFRA-TS-4 — F3:13 through BOTH_MESSAGE
+**STATUS: EXECUTED / DELIVERED**
+
+Completed:
+- modern envelope `id:u16 LE + size:u32 LE`;
+- `BOTH_MESSAGE (0x000C)` tunnel;
+- exact 24-byte F3:13 C1 body preservation;
+- TCP client/server loopback;
+- parser round-trip of index and all 18 CharSet bytes;
+- regression checks for modern and inner framing;
+- evidence report.
+
+Implementation: `NEW_ERA_IMPLEMENTATION/test_server/ts4_f3_13_both_message_loopback.cpp`
+Evidence: `EVIDENCE/test_server/TS-4_F3_13_BOTH_MESSAGE_LOOPBACK/REPORT.md`
+
+## Verified result
+`TS-4 F3:13 BOTH_MESSAGE loopback: PASS`
+
+Runtime validation: C++17/g++ with `-Wall -Wextra -Wpedantic -pthread`, TCP loopback on `127.0.0.1`, exit status `0`.
+
+## Boundary
+This proves F3:13 through the NEW-ERA BOTH_MESSAGE envelope and TCP transport. It does not claim integration with the original MU executable or client renderer.
+
+## Previous objective
 ### 1.3-ZP2 — F3:13 Equipment/CharSet
 **STATUS: EXECUTED / DELIVERED**
 
-Completed in the repository:
-- exact F3:13 C1 wire codec;
-- 24-byte frame validation;
-- big-endian character index;
-- 18-byte CharSet preservation;
-- real TCP 127.0.0.1 loopback harness;
-- golden vector;
-- negative framing checks;
-- evidence report.
-
-Evidence report:
-`EVIDENCE/1.3-ZP2/NEW_ERA_1_3_ZP2_F3_13_IMPLEMENTATION_AND_LOOPBACK_REPORT.md`
-
-Implementation:
-`NEW_ERA_IMPLEMENTATION/mvp_login/f3_13_equipment_charset.h`
-
-Loopback:
-`NEW_ERA_IMPLEMENTATION/mvp_login/loopback_f3_13/test_f3_13_loopback.cpp`
-
-## Verified result
-`F3:13 TCP loopback: PASS`
-
-The implementation was compiled as C++17 with warnings enabled and the TCP loopback passed. The golden frame was compared byte-for-byte in both directions and then parsed back into the semantic structure.
-
-## Important boundary
-This proves the F3:13 protocol codec and transport loopback. It does not claim a full 3D client rendering implementation. No undocumented CharSet transformation was invented.
-
 ## Next objective
-Continue from the next still-open implementation item in the master checkpoint, preserving the evidence-first rule. Do not mark a future objective complete without an executable/golden/loopback proof appropriate to that objective.
+Proceed to the next still-open implementation/integration item after INFRA-TS-4. Preserve evidence-first methodology and require executable/golden/loopback proof before marking it complete.
 
-## Latest commits for this objective
-- `f3e09831e6acb6b672c24ca0db6d2bd9dccb87a2` — codec
-- `009841b3e008d7f80094b320f41a312e12af3f5b` — TCP loopback
-- `dbd842bcdcda47a26fb5b8fafaeb72ed20e6f3dd` — evidence report
+## Latest TS-4 commits
+- `c35fbae053618adfe62393014197f86efc376dd9` — loopback implementation
+- `70b0ebd24cf553929ab1d937a9e310b9812afcb3` — evidence report
