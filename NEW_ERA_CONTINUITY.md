@@ -5,73 +5,59 @@
 - Our reconstruction: `heldergaraujo2/NEW-ERA-KNOWLEDGE`.
 
 ## Current completed objective
+### 1.0-B — F1:01 Login Request builder + C3/TCP loopback
+**STATUS: EXECUTED / DELIVERED / PASS (test-key scope)**
+
+Completed:
+- recovered 50-byte pre-SimpleModulus C1 construction (49 logical fields + packet serial);
+- BuxConvert `{FC,CF,AB}` on ID/password;
+- TickCount LE;
+- Version[5] transform;
+- 16-byte protocol serial;
+- proven 32-byte chained stream XOR;
+- C3 framing after SimpleModulus;
+- local decrypt/stream-XOR regression;
+- real TCP loopback;
+- CMake target `ts13_f1_01_login_request_loopback`.
+
+Implementation:
+`NEW_ERA_IMPLEMENTATION/mvp_login/f1_01_login_request.h`
+
+Regression:
+`NEW_ERA_IMPLEMENTATION/mvp_login/loopback_f1_01_login_request/test_f1_01_login_request_loopback_v2.cpp`
+
+Evidence:
+`EVIDENCE/1.0-B_F1_01_LOGIN_REQUEST/REPORT.md`
+
+## Verified result
+`TS-13 F1:01 login request C3 loopback: PASS`
+
+Golden C3 frame:
+`c34f5f3d11d746df2080285164025c2e47889de32a5493a667c1011a474e31f0f0cbfefee019a1cabfb28c94af9a135a29ed4a3ac096e8e8dd927310680985132bb4d3e69b081cca8bb52043d02619`
+
+Runtime: recreated C++17 fixture, `g++ -std=c++17 -Wall -Wextra -Wpedantic -pthread`, real TCP loopback, exit 0.
+
+## Boundary
+Production-key interoperability is NOT claimed in this objective because the manifest-referenced binary `Enc1.dat`/`Dec2.dat` was not exposed by the available GitHub file interface during this run. The implementation requires real Enc1 keys for production C3 generation; the executable proof injects deterministic test keys. Original Windows/MU/ASIO/GameServer runtime integration remains unverified.
+
+## Previous completed objective
 ### 1.3-T — F1:00 ServerVersion implementation + TCP loopback
 **STATUS: EXECUTED / DELIVERED / PASS**
 
-Completed:
-- isolated 12-byte C1 F1:00 builder/parser;
-- Result + HeroKey + five opaque version bytes;
-- golden vector and exact-byte regression;
-- negative truncated-frame regression;
-- real TCP loopback on `127.0.0.1` with ephemeral port;
-- CMake target `ts12_f1_00_server_version_loopback`;
-- C++17 warning-enabled validation.
-
-Implementation:
-`NEW_ERA_IMPLEMENTATION/mvp_login/f1_00_server_version.h`
-
-Regression:
-`NEW_ERA_IMPLEMENTATION/mvp_login/loopback_f1_00_server_version/test_f1_00_server_version_loopback.cpp`
-
-Evidence:
-`EVIDENCE/1.3-T-IMPLEMENTATION/REPORT.md`
-
-## Verified result
-`1.3-T F1:00 ServerVersion TCP loopback: PASS`
-
-Golden frame:
-- `c10cf1000112343530324142`
-
-Runtime validation: C++17/g++ with `-Wall -Wextra -Wpedantic -pthread`; exit status `0`.
-CMake configure/build fixture + executable run also passed with exit status `0`.
-
-## Boundary
-This closes the recovered F1:00 wire codec and local TCP transport validation. It does not claim execution of the original Windows/MU client, original GameServer process, original ASIO runtime, or undocumented server-version semantics beyond the recovered fields.
-
-## Previous completed objectives
-### 1.3-R P3 — BOTH_ATTACK1/2 TCP TX loopback
-**STATUS: EXECUTED / DELIVERED / PASS**
-
-Implementation:
-`NEW_ERA_IMPLEMENTATION/mvp_login/loopback_both_attack_tx/test_both_attack_tx_tcp.cpp`
-
-Evidence:
-`EVIDENCE/1.3-RP3/NEW_ERA_1_3_RP3_BOTH_ATTACK_TCP_LOOPBACK.md`
-
-### 1.3-S P2 — Combat Action/Skill RX
-**STATUS: EXECUTED / DELIVERED / PASS**
-
-Implementation:
-`NEW_ERA_IMPLEMENTATION/mvp_login/combat_action_skill_rx.h`
-
-Evidence:
-`EVIDENCE/1.3-SP2/NEW_ERA_1_3_SP2_CORE_COMMIT_AND_VALIDATION.md`
-
 ## Earlier completed objectives
-- 1.3-R P2 — BOTH_ATTACK1/2 TX core commit + validation: PASS
+- 1.3-R P3 — BOTH_ATTACK1/2 TCP TX loopback: PASS
+- 1.3-S P2 — Combat Action/Skill RX: PASS
+- 1.3-R P2 — BOTH_ATTACK1/2 TX core: PASS
 - 1.3-P(b) — F3:13 Equipment/Model Apply: PASS
-- 1.3-P — Combat action/skill RX (`0x18` / `0x19`): PASS
-- INFRA-TS-7 — Test-server CMake integration: PASS
-- INFRA-TS-6 — F3:13 multi-accept/reconnect loopback: PASS
-- INFRA-TS-5 — F3:13 scripted sequence: PASS
-- INFRA-TS-4 — F3:13 through BOTH_MESSAGE: PASS
+- INFRA-TS-7/6/5/4 — test-server integration and F3:13 loopbacks: PASS
 - 1.3-ZP2 — F3:13 Equipment/CharSet codec + loopback: PASS
 
 ## Next continuation rule
 Proceed to the next still-open implementation/integration item documented by the project checkpoint or latest evidence chain. Preserve evidence-first methodology and require executable/golden/loopback proof before marking it complete.
 
 ## Latest commits
-- `975c0fe7daeeff2b5c5820a895def3c14f74822c` — F1:00 ServerVersion codec
-- `6820b22155409e823a5075049d4ce01bd2a566fb` — F1:00 TCP loopback
-- `1c3a0603b34bf7cdac63b5f7c3878bfff5b05226` — CMake TS12 integration
-- `d8797b84de33bed65d19e9112f72b7e5e5061a56` — F1:00 evidence
+- `17d833ad93fa9a5cb5f2f9f300925bedc8e2229a` — F1:01 builder
+- `b905322508a3c4edeabe884847b5fed4a3dc46aa` — initial TCP regression
+- `0cfa6db81ccc214486d4876388b8c48b8103dd78` — corrected TCP regression
+- `950515a66c23e79c5679ec605a482d6691b5fce5` — CMake TS13
+- `6d56ca369c3fb7d8a9c18432d41422f84ffa9a30` — evidence
