@@ -17,24 +17,33 @@ Completed:
 - regression checks for modern and inner framing;
 - evidence report.
 
-Implementation: `NEW_ERA_IMPLEMENTATION/test_server/ts4_f3_13_both_message_loopback.cpp`
-Evidence: `EVIDENCE/test_server/TS-4_F3_13_BOTH_MESSAGE_LOOPBACK/REPORT.md`
+## Current work advanced
+### INFRA-TS-5 — F3:13 scripted sequence
+**STATUS: IMPLEMENTED / RUNTIME VALIDATION PENDING**
 
-## Verified result
+Implementation:
+`NEW_ERA_IMPLEMENTATION/test_server/ts5_f3_13_scripted_sequence_loopback.cpp`
+
+Evidence:
+`EVIDENCE/test_server/TS-5_F3_13_SCRIPTED_SEQUENCE/REPORT.md`
+
+The harness models the test-server trigger point and sends three deterministic F3:13 responses through `BOTH_MESSAGE`, validating the 6-byte modern envelope, 24-byte C1 body, parser round-trip, index, and all 18 CharSet bytes.
+
+Runtime validation is deliberately not marked PASS because this environment has no available C++ execution runtime or repository GitHub Actions workflow that can provide an exit-code result.
+
+## Previous verified result
 `TS-4 F3:13 BOTH_MESSAGE loopback: PASS`
 
-Runtime validation: C++17/g++ with `-Wall -Wextra -Wpedantic -pthread`, TCP loopback on `127.0.0.1`, exit status `0`.
+TS-4 runtime validation: C++17/g++ with `-Wall -Wextra -Wpedantic -pthread`, TCP loopback on `127.0.0.1`, exit status `0`.
 
 ## Boundary
-This proves F3:13 through the NEW-ERA BOTH_MESSAGE envelope and TCP transport. It does not claim integration with the original MU executable or client renderer.
+The project does not claim integration with the original MU executable or client renderer without corresponding evidence.
 
-## Previous objective
-### 1.3-ZP2 — F3:13 Equipment/CharSet
-**STATUS: EXECUTED / DELIVERED**
+## Next continuation rule
+Resume by executing/validating INFRA-TS-5 where a C++ runtime is available. If it passes, promote TS-5 to EXECUTED/DELIVERED and continue to the next still-open implementation/integration item. Preserve evidence-first methodology.
 
-## Next objective
-Proceed to the next still-open implementation/integration item after INFRA-TS-4. Preserve evidence-first methodology and require executable/golden/loopback proof before marking it complete.
-
-## Latest TS-4 commits
-- `c35fbae053618adfe62393014197f86efc376dd9` — loopback implementation
-- `70b0ebd24cf553929ab1d937a9e310b9812afcb3` — evidence report
+## Latest commits
+- `c35fbae053618adfe62393014197f86efc376dd9` — TS-4 loopback implementation
+- `70b0ebd24cf5539291d937a9e310b9812afcb3` — TS-4 evidence report
+- `5c1847e8df35fd00f956f4ca294314453af9513a` — TS-5 scripted sequence implementation
+- `06fded054d845f5944b123779920476beb99b9f5` — TS-5 evidence report
