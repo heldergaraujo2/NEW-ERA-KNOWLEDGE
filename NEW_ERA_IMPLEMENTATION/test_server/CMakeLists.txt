@@ -55,6 +55,14 @@ target_include_directories(ts11_both_attack_tx_tcp_loopback PRIVATE
 )
 target_compile_features(ts11_both_attack_tx_tcp_loopback PRIVATE cxx_std_17)
 
+add_executable(ts12_f1_00_server_version_loopback
+  ../mvp_login/loopback_f1_00_server_version/test_f1_00_server_version_loopback.cpp
+)
+target_include_directories(ts12_f1_00_server_version_loopback PRIVATE
+  ../mvp_login
+)
+target_compile_features(ts12_f1_00_server_version_loopback PRIVATE cxx_std_17)
+
 if (WIN32)
   target_link_libraries(new_era_test_server PRIVATE ws2_32)
   target_link_libraries(ts4_f3_13_both_message_loopback PRIVATE ws2_32)
@@ -64,4 +72,5 @@ if (WIN32)
   target_link_libraries(ts9_f3_13_equipment_apply_loopback PRIVATE ws2_32)
   target_link_libraries(ts10_both_attack_tx_loopback PRIVATE ws2_32)
   target_link_libraries(ts11_both_attack_tx_tcp_loopback PRIVATE ws2_32)
+  target_link_libraries(ts12_f1_00_server_version_loopback PRIVATE ws2_32)
 endif()
