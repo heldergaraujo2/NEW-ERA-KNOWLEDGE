@@ -69,16 +69,22 @@ static uint32_t ReadLE32(const uint8_t* p) {
            (static_cast<uint32_t>(p[3]) << 24);
 }
 
-static void PutLE16(uint8_t* p, uint16_t v) {
-    p[0] = static_cast<uint8_t>(v & 0xFF);
-    p[1] = static_cast<uint8_t>(v >> 8);
-}
+static void ValidateAndEcho(socket_t peer, const std::vector<uint8_t>& expected) {
+    uint8_t header[6]{};
+    assert(ReadExact(peer, header, sizeof(header)));
+    const uint16_t id = ReadLE16(header);
+    const uint32_t size = ReadLE32(header + 2);
+    const uint16_t expectedId = (expected.size() == 13)
+        ? newera::both_attack::kBothAttack1
+        : newera::both_attack::kBothAttack2;
+    assert(id == expectedId);
+    assert(size == expected.size() - 6);
 
-static void PutLE32(uint8_t* p, uint32_t v) {
-    p[0] = static_cast<uint8_t>(v & 0xFF);
-    p[1] = static_cast<uint8_t>(v >> 8);
-    p[2] = static_cast<uint8_t>(v >> 16);
-    p[3] = static_cast<uint8_t>(v >> 24);
+    std::vector<uint8_t> body(size);
+    assert(ReadExact(peer, body.data(), body.size()));
+    assert(body == std::vector<uint8_t>(expected.begin() + 6, expected.end()));
+    assert(WriteAll(peer, header, sizeof(header)));
+    assert(WriteAll(peer, body.data(), body.size()));
 }
 
 int main() {
@@ -89,15 +95,6 @@ int main() {
 
     socket_t listener = socket(AF_INET, SOCK_STREAM, 0);
     assert(listener != kInvalidSocket);
-
-    int reuse = 1;
-    setsockopt(listener, SOL_SOCKET, SO_REUSEADDR,
-#ifdef _WIN32
-               reinterpret_cast<const char*>(&reuse), sizeof(reuse)
-#else
-               &reuse, sizeof(reuse)
-#endif
-    );
 
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
@@ -115,28 +112,18 @@ int main() {
     assert(getsockname(listener, reinterpret_cast<sockaddr*>(&bound), &bound_len) == 0);
     const uint16_t port = ntohs(bound.sin_port);
 
+    using namespace newera::both_attack;
+    std::vector<uint8_t> attack1;
+    std::vector<uint8_t> attack2;
+    std::string error;
+    assert(BuildAttack1(0x0701, 0x78, 0x03, attack1, error));
+    assert(BuildAttack2(0x0109, 0x32, 0x3C, 0x01, 0x09, attack2, error));
+
     std::thread server([&]() {
         socket_t peer = accept(listener, nullptr, nullptr);
         assert(peer != kInvalidSocket);
-
-        uint8_t header[6]{};
-        assert(ReadExact(peer, header, sizeof(header)));
-        const uint16_t id = ReadLE16(header);
-        const uint32_t size = ReadLE32(header + 2);
-        assert(id == newera::both_attack::kBothAttack1 || id == newera::both_attack::kBothAttack2);
-        assert(size == 7 || size == 9);
-
-        std::vector<uint8_t> body(size);
-        assert(ReadExact(peer, body.data(), body.size()));
-
-        if (id == newera::both_attack::kBothAttack1) {
-            assert(body == std::vector<uint8_t>({0xC1,0x07,0x11,0x07,0x01,0x78,0x03}));
-        } else {
-            assert(body == std::vector<uint8_t>({0xC3,0x09,0xDB,0x01,0x09,0x09,0x32,0x01,0x3C}));
-        }
-
-        assert(WriteAll(peer, header, sizeof(header)));
-        assert(WriteAll(peer, body.data(), body.size()));
+        ValidateAndEcho(peer, attack1);
+        ValidateAndEcho(peer, attack2);
         Close(peer);
     });
 
@@ -148,22 +135,13 @@ int main() {
     target.sin_port = htons(port);
     assert(connect(client, reinterpret_cast<const sockaddr*>(&target), sizeof(target)) == 0);
 
-    using namespace newera::both_attack;
-    std::vector<uint8_t> attack1;
-    std::vector<uint8_t> attack2;
-    std::string error;
-    assert(BuildAttack1(0x0701, 0x78, 0x03, attack1, error));
-    assert(BuildAttack2(0x0109, 0x32, 0x3C, 0x01, 0x09, attack2, error));
+    for (const auto& frame : {attack1, attack2}) {
+        assert(WriteAll(client, frame.data(), frame.size()));
+        std::vector<uint8_t> echoed(frame.size());
+        assert(ReadExact(client, echoed.data(), echoed.size()));
+        assert(echoed == frame);
+    }
 
-    assert(WriteAll(client, attack1.data(), attack1.size()));
-    uint8_t rx1[13]{};
-    assert(ReadExact(client, rx1, sizeof(rx1)));
-    assert(std::memcmp(rx1, attack1.data(), attack1.size()) == 0);
-
-    assert(WriteAll(client, attack2.data(), attack2.size()));
-    uint8_t rx2[15]{};
-    // The single-accept server validates one frame; close after proving the first.
-    (void)rx2;
     Close(client);
     server.join();
     Close(listener);
