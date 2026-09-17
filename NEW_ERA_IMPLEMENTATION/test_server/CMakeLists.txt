@@ -59,6 +59,12 @@ add_executable(ts13_f1_01_login_request_loopback
 target_include_directories(ts13_f1_01_login_request_loopback PRIVATE ../mvp_login)
 target_compile_features(ts13_f1_01_login_request_loopback PRIVATE cxx_std_17)
 
+add_executable(ts14_f1_02_logout_request_loopback
+  ../mvp_login/loopback_f1_02_logout_request/test_f1_02_logout_request_loopback.cpp
+)
+target_include_directories(ts14_f1_02_logout_request_loopback PRIVATE ../mvp_login)
+target_compile_features(ts14_f1_02_logout_request_loopback PRIVATE cxx_std_17)
+
 if (WIN32)
   target_link_libraries(new_era_test_server PRIVATE ws2_32)
   target_link_libraries(ts4_f3_13_both_message_loopback PRIVATE ws2_32)
@@ -70,4 +76,5 @@ if (WIN32)
   target_link_libraries(ts11_both_attack_tx_tcp_loopback PRIVATE ws2_32)
   target_link_libraries(ts12_f1_00_server_version_loopback PRIVATE ws2_32)
   target_link_libraries(ts13_f1_01_login_request_loopback PRIVATE ws2_32)
+  target_link_libraries(ts14_f1_02_logout_request_loopback PRIVATE ws2_32)
 endif()
