@@ -26,42 +26,38 @@ target_compile_features(ts6_f3_13_multi_accept_loopback PRIVATE cxx_std_17)
 add_executable(ts8_combat_action_skill_rx_loopback
   ../mvp_login/loopback_combat_action_skill_rx/test_combat_action_skill_loopback.cpp
 )
-target_include_directories(ts8_combat_action_skill_rx_loopback PRIVATE
-  ../mvp_login
-)
+target_include_directories(ts8_combat_action_skill_rx_loopback PRIVATE ../mvp_login)
 target_compile_features(ts8_combat_action_skill_rx_loopback PRIVATE cxx_std_17)
 
 add_executable(ts9_f3_13_equipment_apply_loopback
   ../mvp_login/loopback_f3_13_equipment_apply/test_f3_13_equipment_apply_loopback.cpp
 )
-target_include_directories(ts9_f3_13_equipment_apply_loopback PRIVATE
-  ../mvp_login
-)
+target_include_directories(ts9_f3_13_equipment_apply_loopback PRIVATE ../mvp_login)
 target_compile_features(ts9_f3_13_equipment_apply_loopback PRIVATE cxx_std_17)
 
 add_executable(ts10_both_attack_tx_loopback
   ../mvp_login/loopback_both_attack_tx/test_both_attack_tx.cpp
 )
-target_include_directories(ts10_both_attack_tx_loopback PRIVATE
-  ../mvp_login
-)
+target_include_directories(ts10_both_attack_tx_loopback PRIVATE ../mvp_login)
 target_compile_features(ts10_both_attack_tx_loopback PRIVATE cxx_std_17)
 
 add_executable(ts11_both_attack_tx_tcp_loopback
   ../mvp_login/loopback_both_attack_tx/test_both_attack_tx_tcp.cpp
 )
-target_include_directories(ts11_both_attack_tx_tcp_loopback PRIVATE
-  ../mvp_login
-)
+target_include_directories(ts11_both_attack_tx_tcp_loopback PRIVATE ../mvp_login)
 target_compile_features(ts11_both_attack_tx_tcp_loopback PRIVATE cxx_std_17)
 
 add_executable(ts12_f1_00_server_version_loopback
   ../mvp_login/loopback_f1_00_server_version/test_f1_00_server_version_loopback.cpp
 )
-target_include_directories(ts12_f1_00_server_version_loopback PRIVATE
-  ../mvp_login
-)
+target_include_directories(ts12_f1_00_server_version_loopback PRIVATE ../mvp_login)
 target_compile_features(ts12_f1_00_server_version_loopback PRIVATE cxx_std_17)
+
+add_executable(ts13_f1_01_login_request_loopback
+  ../mvp_login/loopback_f1_01_login_request/test_f1_01_login_request_loopback_v2.cpp
+)
+target_include_directories(ts13_f1_01_login_request_loopback PRIVATE ../mvp_login)
+target_compile_features(ts13_f1_01_login_request_loopback PRIVATE cxx_std_17)
 
 if (WIN32)
   target_link_libraries(new_era_test_server PRIVATE ws2_32)
@@ -73,4 +69,5 @@ if (WIN32)
   target_link_libraries(ts10_both_attack_tx_loopback PRIVATE ws2_32)
   target_link_libraries(ts11_both_attack_tx_tcp_loopback PRIVATE ws2_32)
   target_link_libraries(ts12_f1_00_server_version_loopback PRIVATE ws2_32)
+  target_link_libraries(ts13_f1_01_login_request_loopback PRIVATE ws2_32)
 endif()
