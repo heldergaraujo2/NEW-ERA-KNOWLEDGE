@@ -31,10 +31,19 @@ target_include_directories(ts8_combat_action_skill_rx_loopback PRIVATE
 )
 target_compile_features(ts8_combat_action_skill_rx_loopback PRIVATE cxx_std_17)
 
+add_executable(ts9_f3_13_equipment_apply_loopback
+  ../mvp_login/loopback_f3_13_equipment_apply/test_f3_13_equipment_apply_loopback.cpp
+)
+target_include_directories(ts9_f3_13_equipment_apply_loopback PRIVATE
+  ../mvp_login
+)
+target_compile_features(ts9_f3_13_equipment_apply_loopback PRIVATE cxx_std_17)
+
 if (WIN32)
   target_link_libraries(new_era_test_server PRIVATE ws2_32)
   target_link_libraries(ts4_f3_13_both_message_loopback PRIVATE ws2_32)
   target_link_libraries(ts5_f3_13_scripted_sequence_loopback PRIVATE ws2_32)
   target_link_libraries(ts6_f3_13_multi_accept_loopback PRIVATE ws2_32)
   target_link_libraries(ts8_combat_action_skill_rx_loopback PRIVATE ws2_32)
+  target_link_libraries(ts9_f3_13_equipment_apply_loopback PRIVATE ws2_32)
 endif()
