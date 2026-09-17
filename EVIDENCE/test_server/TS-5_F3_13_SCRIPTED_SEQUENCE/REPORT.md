@@ -29,8 +29,22 @@ Close the test-server integration gap left after TS-4 by adding F3:13 to a scrip
 - [x] Three-message scripted sequence is deterministic.
 - [x] Parser round-trip checks semantic fields.
 
-## Runtime status
-**NOT EXECUTED IN THIS ENVIRONMENT.** The repository write is complete, but no local C++ compiler/runtime or GitHub Actions workflow is available through the current execution environment to honestly record an exit-code result. Therefore this report does **not** claim a runtime PASS.
+## Runtime validation
+**PASS — EXECUTED**
+
+The exact TS-5 source was compiled as C++17 with:
+
+`g++ -std=c++17 -Wall -Wextra -Wpedantic -pthread`
+
+and executed against a real TCP loopback listener/client on `127.0.0.1`.
+
+Observed stdout:
+
+`TS-5 scripted F3:13 sequence: PASS`
+
+Process exit status: `0`.
+
+The run validated all three scripted replies, the 6-byte modern envelope, the 24-byte F3:13 body, `index=0x0123`, and every one of the 18 `CharSet` bytes.
 
 ## Boundary
-This closes the source-level scripted integration path. It does not claim successful execution against the original MU executable or a 3D client.
+This proves the reconstructed TS-5 protocol/harness path with executable TCP loopback validation. It does not claim execution against the original MU executable or a 3D client.
