@@ -5,33 +5,47 @@
 - Our reconstruction: `heldergaraujo2/NEW-ERA-KNOWLEDGE`.
 
 ## Current completed objective
+### 1.3-P — Combat action/skill RX (`0x18` / `0x19`)
+**STATUS: EXECUTED / DELIVERED / PASS**
+
+The checkpoint listed 1.3-P as the next microtest choice. The first documented branch was executed: ACK/animation-side RX wire codec for action `0x18` and magic/skill `0x19`.
+
+Completed:
+- recovered `PRECEIVE_ACTION` wire layout from pinned upstream evidence;
+- recovered `PRECEIVE_MAGIC` wire layout from pinned upstream evidence;
+- strict C1 parsers for both signals;
+- exact 9-byte length/header validation;
+- golden vectors for both frames;
+- real TCP loopback delivering both frames in sequence;
+- field-by-field decode assertions;
+- truncation rejection regression;
+- CMake target `ts8_combat_action_skill_rx_loopback` with C++17 and Windows `ws2_32` linkage.
+
+Implementation:
+`NEW_ERA_IMPLEMENTATION/mvp_login/combat_action_skill_rx.h`
+
+Loopback:
+`NEW_ERA_IMPLEMENTATION/mvp_login/loopback_combat_action_skill_rx/test_combat_action_skill_loopback.cpp`
+
+Evidence:
+`EVIDENCE/1.3-P_COMBAT_ACTION_SKILL_RX/REPORT.md`
+
+## Verified result
+`TS-8 combat action/skill RX loopback: PASS`
+
+Runtime validation: C++17/g++ with `-Wall -Wextra -Wpedantic -pthread`, real TCP loopback on `127.0.0.1`, exit status `0`.
+
+## Exact golden vectors
+- `0x18`: `c10918012305780456` → key `0x0123`, angle `0x05`, action `0x78`, target `0x0456`.
+- `0x19`: `c10919004201230456` → magic `0x0042`, source `0x0123`, target `0x0456`.
+
+## Boundary
+This closes the recovered **wire-level RX codec + executable loopback** for `0x18` and `0x19`. It does not claim the complete upstream animation/action semantic table, original MU executable/renderer execution, original MU server execution, C4/transport decryption, undocumented `ReceiveMagic` side effects, or universal C1 emission for every 0x19 path.
+
+## Previous completed objectives
 ### INFRA-TS-7 — Test-server CMake integration
 **STATUS: EXECUTED / DELIVERED / PASS**
 
-Completed:
-- CMake targets for the base test server and TS-4/TS-5/TS-6 loopback harnesses;
-- C++17 requirement on all targets;
-- Windows `ws2_32` linkage on all socket targets;
-- isolated CMake configure/build validation for the exact TS-6 harness source + F3:13 codec;
-- TS-6 runtime still PASS with real TCP loopback and two sequential client sessions.
-
-Implementation:
-`NEW_ERA_IMPLEMENTATION/test_server/CMakeLists.txt`
-
-Evidence:
-`EVIDENCE/test_server/TS-7_CMAKE_LOOPBACK_TARGETS/REPORT.md`
-
-## Verified result
-`TS-6 F3:13 multi-accept loopback: PASS`
-`CMAKE_CONFIGURE=PASS`
-`CMAKE_BUILD=PASS`
-
-Runtime/build validation: C++17/g++ with `-Wall -Wextra -Wpedantic -pthread`; real TCP loopback on `127.0.0.1`; CMake configure/build in an isolated fixture containing the exact TS-6 source and codec. A full checkout build of all four targets was not claimed because the local runtime did not contain the complete GitHub checkout.
-
-## Boundary
-This closes the CMake build-system integration for the declared test-server targets. It does not claim execution against the original MU executable, original server, or client renderer.
-
-## Previous completed objectives
 ### INFRA-TS-6 — F3:13 multi-accept/reconnect loopback
 **STATUS: EXECUTED / DELIVERED / PASS**
 
@@ -48,6 +62,7 @@ This closes the CMake build-system integration for the declared test-server targ
 Proceed to the next still-open implementation/integration item documented by the project checkpoint. Preserve evidence-first methodology and require executable/golden/loopback proof before marking it complete.
 
 ## Latest commits
-- `7af495a28decb125d0c85c6f162250e43919f201` — TS-7 CMake integration
-- `3d5443f445597d3bd501fdead7ee1823d0fcc78f` — TS-7 evidence report
-- `aa1dec34dce9f1d9d04ad7442f81ccb0deb6580b` — previous continuity update
+- `bcb9fa468f6274e4925f794d5eb03e6c07d52439` — 1.3-P combat RX codec
+- `e21435b3fb0323bb997b8d9025437c3b9eb24c22` — 1.3-P TCP loopback
+- `455d968fe8066eba044cf20a25d2857ac24ed7b1` — 1.3-P CMake target
+- `134c0871e0d7e34e2d3fd85ee5a05f18c1ebb9b8` — 1.3-P evidence report
