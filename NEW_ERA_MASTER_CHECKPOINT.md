@@ -356,3 +356,14 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Validation: C++17 decoder syntax/compile fixture PASS; independent executable production-key end-to-end round-trip PASS, with ID `TestHero`, password `P@ss123`, TickCount `0x78563412`, Version `12345`, ProtocolSerial `A0..AF`, packet serial `0x07` recovered exactly.
 - Full repository CMake execution is not claimed because the execution container has no repository checkout/network.
 - Boundary: original GameServer authentication/database/JoinServer decision logic and original Windows runtime remain unverified.
+
+
+## 1.0-F10 — F1 server login decision/result layer (2026-09-18)
+- EXECUTED/DELIVERED/PASS: deterministic compatible server decision layer added after F1:01 decode.
+- Implementation: NEW_ERA_IMPLEMENTATION/mvp_login/f1_login_server_decision.h
+- Regression: NEW_ERA_IMPLEMENTATION/mvp_login/loopback_f1_login_server_decision/test_f1_login_server_decision.cpp
+- CMake target: ts24_f1_login_server_decision
+- Evidence: EVIDENCE/1.0-F10_SERVER_LOGIN_DECISION/REPORT.md
+- Validation output: TS-24 F1 server login decision/result mapping: PASS.
+- Golden result success: c105f10101; version/serial failure: c105f10106.
+- Boundary: this is a compatible reconstruction; original database/authentication/JoinServer internals and original Windows runtime remain unverified.
