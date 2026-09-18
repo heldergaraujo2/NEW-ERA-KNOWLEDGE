@@ -13,6 +13,16 @@ jobs:
       - name: Configure
         run: cmake -S NEW_ERA_IMPLEMENTATION/test_server -B build/ts27 -DCMAKE_BUILD_TYPE=Release
       - name: Build TS-27
-        run: cmake --build build/ts27 --config Release --target ts27_c4_server_rx_loopback --parallel 2
+        run: |
+          set +e
+          cmake --build build/ts27 --config Release --target ts27_c4_server_rx_loopback --parallel 2 2>&1 | tee build-ts27.log
+          rc=${PIPESTATUS[0]}
+          exit $rc
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ts27-build-log
+          path: build-ts27.log
       - name: Run TS-27
         run: build/ts27/ts27_c4_server_rx_loopback
