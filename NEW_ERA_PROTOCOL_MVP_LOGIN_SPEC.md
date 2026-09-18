@@ -37,7 +37,7 @@
 ## 3. Framing e criptografia (ordem exata, TX login C→S)
 1. **Credenciais**: `BuxConvert` XOR cíclico 3 B, chave `{0xFC,0xCF,0xAB}` (C1:209-:215; aplicado inline:257-:258) — server desfaz com `PacketArgumentDecrypt` ≡ (G2:101-:109, tabela local `XorTable[3]` idêntica — §41 PROVADO).
 2. **Stream builder**: `CStreamPacketEngine` monta pacote interno **C1** `Init(0xC1,0xF1)` (C4:29-:46); cada campo `AddData(bXor=TRUE)` aplica **XOR encadeado** `buf[i] ^= buf[i-1]^Filter[i%32]` (C4:66-:80) com tabela 32 B `E7 6D 3A 89 BC B2 9F 73 23 A8 FE B6 49 5D 39 5D 8A CB 63 8D EA 7D 2B 5F C3 B1 E9 83 29 51 E8 56` — **32/32 idêntica** ao `m_XorFilter` do GS (G3:85-:116).
-3. **Serial**: byte de serial do cliente inserido (`g_byPacketSerialSend++`, C3:92-:95); GS valida por conexão (`gSerialCheck`) e S→C devolve serial próprio (G4:449/:462; check cliente C1:11703 — falha ⇒ logging + `SendHackingChecked`).
+3. **Serial**: `SendPacket` insere o serial do cliente em `byBuffer[1]` para C1 (`g_byPacketSerialSend++`, C3:92-:95), substituindo o byte de tamanho antes da cifra. Em seguida, para C1, o SimpleModulus recebe o intervalo `byBuffer+1` com `len-1` bytes: o byte [0] (C1) fica fora da cifra, enquanto o serial [1] é o primeiro byte cifrado. O `XorData` do builder começa em [3], portanto o serial [1] não participa do XOR encadeado. GS valida o serial por conexão (`gSerialCheck`) e S→C devolve serial próprio (G4:449/:462; check cliente C1:11703 — falha ⇒ logging + `SendHackingChecked`).
 4. **Cipher de bloco (SimpleModulus/CPacketManager)**: por bloco, `Enc = ((Key·d) % Modulus) ^ Xor` encadeado (G3:337-:343); decrypt espelhado (G3:396-:403); chaves em arquivos: cliente `Data\Enc1.dat`/`Dec2.dat` (C5:1459-:1460), GS `Load*Key` formato `ENCDEC_HEADER+ENCDEC_DATA{Modulus,Key,Xor}[4]` com tabelas ofuscadas (`^m_SaveLoadXor`, G3:185-:192). Camada extra Crypto++ DES (`DES_XEX3`) se `GAMESERVER_UPDATE>=701` (G3 ctor :29-:30/.h:9-:13) [valor de build NOT RECOVERED].
 5. **Envelope**: ciphertext <256 B e !bForceC4 ⇒ **C3** `[0xC3][len][ct…]` (C3:102-:112); senão **C4** `[0xC4][lenL][lenH][ct…]` (:114-:126). Login ≈49 B ⇒ **C3** [premissa 49 B].
 - RX simétrico no cliente (C1:11679-:11710) e no GS (G4:271-:371 → `ProtocolCore` :882 com `encrypt`+`serial`).
@@ -62,7 +62,7 @@
 | 24-27 | TickCount (DWORD LE) | cru (C3:261) |
 | 28-32 | VersionEnc[5] | `Version[i]-(i+1)` (C3:263) |
 | 33-48 | Serial[16] | cru (C3:265; SIZE_PROTOCOLSERIAL=16 C2:14) |
-Após o build: +serial byte, XOR-encadeado por campo, SimpleModulus ⇒ **C3** (§3).
+Após o build C1 de 50 bytes, `SendPacket` substitui `[1]` pelo packet-serial e cifra somente `[1..49]` (49 bytes). O XOR encadeado permanece em `[3..49)`. Resultado: **C3** com 77 bytes de ciphertext.
 ### 4.3 S→C `0xF1:0x01` — login result (G1:3127-:3142)
 `[C1][Size≥5][0xF1][0x01][Value]` — bytes ≥5 ignorados pelo handler (C1:12835).
 
