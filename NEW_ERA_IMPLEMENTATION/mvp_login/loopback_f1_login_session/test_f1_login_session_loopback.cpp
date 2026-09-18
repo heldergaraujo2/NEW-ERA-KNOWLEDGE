@@ -1,0 +1,5 @@
+#include "../f1_login_session.h"
+#include <cassert>
+#include <cstring>
+#include <iostream>
+int main(){const uint8_t v[5]={0x35,0x30,0x32,0x41,0x42};const uint8_t hs[12]={0xC1,0x0C,0xF1,0x00,0x01,0x12,0x34,0x34,0x2E,0x2F,0x3D,0x3D};const uint8_t ok[5]={0xC1,0x05,0xF1,0x01,0x01};const uint8_t bad[5]={0xC1,0x05,0xF1,0x01,0x02};newera::login::LoginSession s(v);assert(s.state()==newera::login::SessionState::Disconnected);s.Start();assert(s.ConsumeHandshake(hs,12));assert(s.hero_key()==0x1234);assert(s.state()==newera::login::SessionState::AwaitingResult);assert(s.ConsumeLoginResult(ok,5));assert(s.state()==newera::login::SessionState::LoggedIn);newera::login::LoginSession r(v);r.Start();assert(r.ConsumeHandshake(hs,12));assert(!r.ConsumeLoginResult(bad,5));assert(r.state()==newera::login::SessionState::Rejected);assert(r.result_value()==2);newera::login::LoginSession t(v);t.Start();uint8_t sh[11];std::memcpy(sh,hs,11);assert(!t.ConsumeHandshake(sh,11));std::cout<<"TS-17 F1 login session state-machine loopback: PASS\n";}
