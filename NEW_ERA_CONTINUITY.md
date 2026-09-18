@@ -279,3 +279,9 @@ Added NEW_ERA_IMPLEMENTATION/renderer/renderer_material.h and regression NEW_ERA
 **STATUS: EXECUTED / DELIVERED / PASS**
 
 Added `NEW_ERA_IMPLEMENTATION/renderer/renderer_mesh_batch.h` and regression `test_renderer_mesh_batch.cpp`. The contract converts recovered BMD triangle corner indices into GPU-oriented vertex/index arrays while preserving vertex/normal/UV associations. Only Polygon==3 is accepted; non-triangles are rejected rather than silently triangulated. C++17 validation passed: `0D-3 renderer triangle batch contract: PASS`, exit 0. Evidence: `EVIDENCE/0D-3_RENDERER_TRIANGLE_BATCH/REPORT.md`. Boundary: no GPU backend or performance equivalence claimed; material-specific vertex generation remains open.
+
+
+## 0D-4 — Renderer Quad Compatibility Batch (2026-09-18)
+**STATUS: EXECUTED / DELIVERED / PASS**
+
+Added `NEW_ERA_IMPLEMENTATION/renderer/renderer_quad_compat.h` and regression `test_renderer_quad_compat.cpp`. Four-corner source geometry is explicitly converted to two indexed triangles (`0,1,2` + `0,2,3`) while preserving per-corner vertex/normal/UV associations. Exact core/test logic compiled in an isolated C++17 fixture with `-Wall -Wextra -Wpedantic`; observed `0D-4 quad compatibility triangulation: PASS`, exit 0. Evidence: `EVIDENCE/0D-4_RENDERER_QUAD_COMPAT/REPORT.md`. Boundary: triangulation diagonal is a NEW-ERA policy, not claimed as original rasterization behavior.
