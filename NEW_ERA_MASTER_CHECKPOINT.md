@@ -323,3 +323,9 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Corrected golden: c34f0de31e1a4537821084daef63cf193a06e9118ad4d9ecae551825c3a8e23bc4093c87c61b5c4c8403a55c10254f4f154a8c97036638f7c2a29908798c2300c71cc9fc0a0409050aa2421cd86f53.
 - Validation: C++17 standalone fixture + real TCP loopback; TS-20 F1:01 packet-serial placement + C3 TCP loopback: PASS, exit 0.
 - This supersedes the earlier incorrect F1:01 deterministic vector; production Enc1.dat/original runtime remain unverified.
+
+## 1.0-F6 — production Enc1.dat vector closure (2026-09-18)
+- **EXECUTED/DELIVERED/PASS**: real pinned upstream Enc1.dat (54 bytes, SHA256 ee73a59bf278d42735e537c96c25cc1ad0f69f1de089a7b20a1e6d2910a4372d) parsed by the committed loader.
+- F1:01 BuildC3 generated the verified production-key 79-byte golden recorded in EVIDENCE/1.0-F6_PRODUCTION_ENC1/REPORT.md.
+- Regression: test_f1_01_production_enc1_vector.cpp; output: TS-21 F1:01 production Enc1 loader + C3 golden: PASS.
+- Boundary remaining: original Windows/MU/GameServer runtime interoperability.
