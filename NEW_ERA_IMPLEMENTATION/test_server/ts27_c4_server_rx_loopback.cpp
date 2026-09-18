@@ -22,7 +22,7 @@ static newera::crypto::PacketCryptoSM::Keys Invert(const newera::crypto::PacketC
         uint32_t m=in.modulus[i], a=in.key[i]%m;
         int64_t t=0,nt=1,r=m,nr=a;
         while(nr){int64_t q=r/nr; int64_t z=t-q*nt; t=nt; nt=z; int64_t rr=r-q*nr; r=nr; nr=rr;}
-        assert(r==1); if(t<0)t+=m; out.key[i]=static_cast<uint32_t>(t);
+        if(r!=1){std::cerr<<"inverse fail "<<i<<"\n"; return 3;} if(t<0)t+=m; out.key[i]=static_cast<uint32_t>(t);
     }
     return out;
 }
@@ -39,7 +39,7 @@ int main() {
     assert(std::fwrite(enc1,1,54,f)==54); std::fclose(f);
 
     newera::crypto::PacketCryptoSM enc,dec; std::string err;
-    assert(enc.LoadKeysFromFile(path,&err,0));
+    if(!enc.LoadKeysFromFile(path,&err,0)){std::cerr<<"load:"<<err<<"\n"; return 2;}
     dec.SetKeys(Invert(enc.DebugKeys()));
 
     std::vector<uint8_t> plain(300,0);
@@ -54,17 +54,17 @@ int main() {
     const auto xored=ApplyWireXor(plain,filter);
     std::vector<uint8_t> cipher(((xored.size()+7)/8)*11);
     const int clen=enc.Encrypt(cipher.data(),xored.data(),static_cast<int>(xored.size()));
-    assert(clen>0); cipher.resize(static_cast<std::size_t>(clen));
+    if(clen<=0){std::cerr<<"encrypt:"<<clen<<"\n"; return 4;} cipher.resize(static_cast<std::size_t>(clen));
 
     std::vector<uint8_t> wire(3+cipher.size());
     wire[0]=0xC4; wire[1]=static_cast<uint8_t>(wire.size()>>8); wire[2]=static_cast<uint8_t>(wire.size());
     std::memcpy(wire.data()+3,cipher.data(),cipher.size());
 
     newera::crypto::C4DecodedPacket out;
-    assert(newera::crypto::DecodeC4ServerFrame(wire,dec,out,&err));
-    assert(out.classic_c2==plain);
+    if(!newera::crypto::DecodeC4ServerFrame(wire,dec,out,&err)){std::cerr<<"decode:"<<err<<" wire="<<wire.size()<<"\n"; return 5;}
+    if(out.classic_c2!=plain){std::cerr<<"mismatch recovered="<<out.classic_c2.size()<<" plain="<<plain.size()<<"\n"; return 6;}
 
     auto bad=wire; bad[2] ^= 1;
-    assert(!newera::crypto::DecodeC4ServerFrame(bad,dec,out,&err));
+    if(newera::crypto::DecodeC4ServerFrame(bad,dec,out,&err)){std::cerr<<"bad frame accepted\n"; return 7;}
     std::cout<<"TS-27 C4 SimpleModulus + server XOR32 decode: PASS\n";
 }
