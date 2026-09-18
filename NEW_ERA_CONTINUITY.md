@@ -319,3 +319,10 @@ Added `NEW_ERA_IMPLEMENTATION/renderer/renderer_quad_compat.h` and regression `t
 - Evidence: `EVIDENCE/1.3-C4/NEW_ERA_1_3_C4_SERVER_RX_REPORT.md`.
 - Dedicated GitHub Actions run `35390287725` completed **SUCCESS**.
 - Boundary: classic C4 receive layer is closed; >=701 DES-XEX3, live original GameServer integration, and connection/session serial semantics remain open.
+
+
+## 1.3-DESX — >=701 DES-XEX3 primitive closure (2026-09-18)
+- **IMPLEMENTED / CI PASS**: `crypto_des_xex3.h` provides the Crypto++ DES_XEX3-compatible 24-byte-key / 8-byte-block primitive.
+- TS-28 deterministic encryption/decryption regression added; dedicated CI run `35394342879` = **SUCCESS**.
+- Evidence: `EVIDENCE/1.3-DESX/NEW_ERA_1_3_DESX_PRIMITIVE_REPORT.md`.
+- Boundary: production DES-XEX3 key source, live GS composition/dispatch, ENCRYPT_STATE value and original GameServer interoperability remain separate integration/evidence gaps.
