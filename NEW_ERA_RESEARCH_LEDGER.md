@@ -1349,3 +1349,11 @@ Next (P2):
   - NEW_ERA_IMPLEMENTATION/test_server/new_era_test_server.cpp
 - Evidencia:
   - EVIDENCE/test_server/TS-3_multi_accept/REPORT.md
+
+
+## 97. FASE 1 — 1.3-C4: classic server C4 RX — FECHADO (2026-09-18)
+- `crypto_c4_server_rx.h`: C4 `[C4][sizeH][sizeL][ciphertext]`, strict size/alignment validation, classic SimpleModulus decrypt, recovered C2 validation and descending server XOR32 reversal.
+- `ts27_c4_server_rx_loopback.cpp`: 300-byte inner C2 vector, production Enc1-derived keys already verified elsewhere, SimpleModulus round-trip, XOR32 round-trip and malformed outer-size negative.
+- CI: dedicated workflow `.github/workflows/new-era-ts27.yml`; run `35390287725` = **SUCCESS**.
+- Evidence: `EVIDENCE/1.3-C4/NEW_ERA_1_3_C4_SERVER_RX_REPORT.md`.
+- Boundary: >=701 DES-XEX3, live original GameServer socket integration and connection/session serial semantics remain open.
