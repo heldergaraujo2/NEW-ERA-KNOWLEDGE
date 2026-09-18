@@ -79,3 +79,7 @@ endif()
 
 add_executable(ts25_f1_production_login_tcp_integration ts25_f1_production_login_tcp_integration.cpp)
 target_compile_features(ts25_f1_production_login_tcp_integration PRIVATE cxx_std_17)
+
+if(WIN32)
+  target_link_libraries(ts25_f1_production_login_tcp_integration PRIVATE ws2_32)
+endif()
