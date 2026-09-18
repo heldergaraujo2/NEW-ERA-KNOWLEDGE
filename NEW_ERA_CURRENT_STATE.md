@@ -657,3 +657,9 @@ Current hard boundary: do not promote 1.0-F11 to PASS without an actual runtime/
 The documented classic GameServer PacketManager seeding gap is now implemented: the production 32-byte XOR filter, 54-byte ENCDEC `LoadKey` semantics, C1/C2 extraction and descending `XorData` transform are represented in `crypto_cpacketmanager_server.h`, with TS-26 regression and evidence.
 
 Validation boundary: an isolated C++17 equivalent fixture was compiled and executed successfully. The repository-wide CMake/Actions execution remains unavailable through the current GitHub run interface, so TS-26 is recorded as isolated PASS rather than repository-wide CI PASS. Live GameServer socket integration and the >=701 DES/XEX3 path remain open.
+
+
+## 2026-09-18 — 1.3-C4 classic server RX closure
+The classic C4 receive layer is implemented and independently validated in GitHub Actions. `crypto_c4_server_rx.h` validates the C4 u16-BE frame, decrypts its SimpleModulus payload, validates the recovered C2 packet and reverses the server XOR32 chain. TS-27 uses the already verified production Enc1-derived key material and a 300-byte inner C2 frame. Dedicated CI run 35390287725 completed SUCCESS.
+
+Current boundary: >=701 DES-XEX3, live original GameServer integration and connection/session serial semantics remain open.
