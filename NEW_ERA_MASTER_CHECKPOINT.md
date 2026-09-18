@@ -419,3 +419,10 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Commit: `6c8afbf600f4f5470f29e03a964ce4dd81b338d6`.
 - Continuity update: `31b1365e0fbed994d885303e733ccf6712b7fa73`.
 - **Validation boundary:** this repair is source-verified only; no repository-wide configure/build/runtime PASS is claimed yet. TS-25 remains EXECUTED/DELIVERED without PASS until the repaired harness is actually built and run.
+
+
+## 2026-09-18 — Phase 1 validation harness consolidated
+- Finalized the F1 CMake cleanup and added repository-native CI covering TS-13..TS-25 plus renderer 0D-2/0D-3/0D-4.
+- CI workflow: `.github/workflows/new-era-phase1.yml`.
+- Merged PR #1: `6db7a4a743487ac67e02c6708ca84332e7964617`.
+- Status boundary: CI infrastructure is merged, but no workflow result is visible through the available GitHub status/run interface. Therefore TS-25 is still not marked PASS and Phase 1 F1 runtime interoperability is not claimed.
