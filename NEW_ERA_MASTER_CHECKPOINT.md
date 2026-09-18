@@ -296,3 +296,9 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 
 - Codigo: NEW_ERA_IMPLEMENTATION/test_server/new_era_test_server.cpp
 - Evidencia: EVIDENCE/test_server/TS-3_multi_accept/REPORT.md
+
+
+## FASE 1 — post-1.0-D completion update (2026-09-18)
+- **1.0-D F1:03**: EXECUTED/DELIVERED/PASS — hacking-check C3 builder + TCP loopback; evidence `EVIDENCE/1.0-D_F1_03_HACKING_CHECK/REPORT.md`.
+- **1.0-E F1 RX**: EXECUTED/DELIVERED/PASS — F1:00 version validation + F1:01 login-result parser/mapping + TCP loopback; evidence `EVIDENCE/1.0-E_F1_RX/REPORT.md`; target `ts16_f1_login_rx_loopback`.
+- F1 client-side MVP is now covered for F1:00 RX, F1:01 TX, F1:01 RX, F1:02 TX, and F1:03 TX. Remaining boundary: production Enc1.dat interoperability and original Windows/MU runtime integration are not verified.
