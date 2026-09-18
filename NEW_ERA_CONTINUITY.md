@@ -137,3 +137,24 @@ Validation was a recreated C++17 fixture because the execution container did not
 - 1.0-F2: F1 login session state machine implemented: F1:00 handshake/version/hero-key -> AwaitingResult -> F1:01 success/rejection. Core f1_login_session.h; regression ts17_f1_login_session_loopback; evidence EVIDENCE/1.0-F2_F1_LOGIN_SESSION/REPORT.md. Commits: 3f3ee48c68f8380e744ac5e0085e0a8dd61477a6, 37835e881cfa4510448c8561d4bdc4d2e49db599, f334c56e76e1b436f38d1faf80b0a11180aa0c50, 906aa8daff8f1dc147d5eb2d0586988bcf7ccd21.
 - 1.0-F3: F1 end-to-end flow coordinator implemented, composing F1:00 RX + F1:01 C3 TX + F1:01 RX. Core f1_login_flow.h; regression ts18_f1_login_flow_loopback; evidence EVIDENCE/1.0-F3_F1_END_TO_END_FLOW/REPORT.md. Commits: 1ce8b0bc4994aede4b07dc501f2479c19fd8f317, b77b291640ed2980b1643799d89f208f28a5932b, eb3cf14966396eb4d1858bfb5177caa16fc3b593, db75d22405412cf751eb506ff6d147d99ad765cb.
 - Validation boundary: TS-18 orchestration was validated with a recreated TCP fixture using the already-proven TS-13 79-byte C3 builder contract; full repository checkout/CMake execution was unavailable in the execution container. Production Enc1.dat and original Windows/MU runtime remain unverified.
+
+
+
+## 1.0-F4 — F1 live TCP flow integration (2026-09-18)
+**STATUS: EXECUTED / DELIVERED / PASS (deterministic test-key scope)**
+
+Completed:
+- real TCP client/server loopback using the committed LoginFlow;
+- exact F1:00 handshake RX, Version transform validation, HeroKey capture;
+- committed F1:01 BuildC3 invoked through LoginFlow (no stub);
+- 79-byte C3 wire framing validated (C3 4F + 77-byte ciphertext);
+- exact F1:01 success RX and final LoggedIn state;
+- CMake target `ts19_f1_login_flow_tcp_loopback`;
+- evidence `EVIDENCE/1.0-F4_F1_LIVE_TCP_FLOW/REPORT.md`.
+
+Verified output:
+`TS-19 F1 login flow real TCP integration: PASS`
+
+Validation: C++17/g++ and an independent CMake fixture, warnings enabled, real TCP loopback on 127.0.0.1, exit 0. The execution container lacked a repository checkout, so the committed core and TS-19 source were reproduced into the validation fixture.
+
+Boundary: deterministic injected SimpleModulus test keys only; production Enc1.dat interoperability, original Windows/MU client/ASIO path, original GameServer, and server-side credential authentication remain unverified.
