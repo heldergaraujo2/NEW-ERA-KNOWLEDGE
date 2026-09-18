@@ -643,3 +643,11 @@ O NEW-ERA Test Server agora aceita clientes em loop: ao desconectar, fecha o soc
   - NEW_ERA_IMPLEMENTATION/test_server/new_era_test_server.cpp
 - Evidencia:
   - EVIDENCE/test_server/TS-3_multi_accept/REPORT.md
+
+
+## 2026-09-18 — Phase 1 current state consolidation
+The current implementation checkpoint is the combined F1 login/server path and renderer 0D compatibility baseline. F1 objectives 1.0-B through 1.0-F10 are recorded as executed/proven within their stated boundaries; 1.0-F11 is implemented but runtime PASS remains unclaimed. Renderer 0D-1 through 0D-4 are recorded, with 0D-2/0D-3/0D-4 PASS in isolated C++17 regressions.
+
+The test harness was audited and repaired. The canonical CMake now has valid TS-14, TS-23, TS-24 and TS-25 target declarations. A repository-native GitHub Actions workflow was merged at `.github/workflows/new-era-phase1.yml` to configure/build/run TS-13..TS-25 and renderer regressions.
+
+Current hard boundary: do not promote 1.0-F11 to PASS without an actual runtime/CI result for `ts25_f1_production_login_tcp_integration` returning `c105f10101`. Original MU/Windows/GameServer interoperability remains unverified.
