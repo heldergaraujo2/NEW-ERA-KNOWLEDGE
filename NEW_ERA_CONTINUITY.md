@@ -311,3 +311,11 @@ Added `NEW_ERA_IMPLEMENTATION/renderer/renderer_quad_compat.h` and regression `t
 - Evidence: `EVIDENCE/1.3-PM/NEW_ERA_1_3_PM_PACKETMANAGER_SEED_AND_KEYLOAD_REPORT.md`.
 - Isolated C++17 equivalent fixture executed with `-Wall -Wextra -Wpedantic`: **PASS**.
 - Boundary: repository-wide CMake/CI result and live GameServer integration are not claimed; DES/XEX3 >=701 remains separate.
+
+
+## 1.3-C4 — classic server C4 RX closure (2026-09-18)
+- **IMPLEMENTED / CI PASS**: added `crypto_c4_server_rx.h` with strict C4 16-bit framing, classic SimpleModulus decrypt, inner C2 validation, and server XOR32 reversal.
+- Regression: `ts27_c4_server_rx_loopback` with a 300-byte inner C2 frame and malformed-size negative.
+- Evidence: `EVIDENCE/1.3-C4/NEW_ERA_1_3_C4_SERVER_RX_REPORT.md`.
+- Dedicated GitHub Actions run `35390287725` completed **SUCCESS**.
+- Boundary: classic C4 receive layer is closed; >=701 DES-XEX3, live original GameServer integration, and connection/session serial semantics remain open.
