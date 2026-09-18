@@ -386,3 +386,11 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Optimization direction recorded without claiming implementation equivalence: persistent GPU buffers, batched draws, explicit material/state sorting, resource handles, compatible camera semantics.
 - Boundary: original runtime performance, exact draw counts, shader frequency, and full visual equivalence remain unverified.
 
+
+
+## FASE 1 — 0D-2 Renderer Material Evaluator (2026-09-18)
+- **EXECUTED/DELIVERED/PASS**: explicit compatibility material evaluator added from recovered ZzzBMD render flags.
+- Core: NEW_ERA_IMPLEMENTATION/renderer/renderer_material.h; regression: test_renderer_material.cpp.
+- Validation: C++17 -Wall -Wextra -Wpedantic; 0D-2 renderer material evaluator: PASS, exit 0.
+- Evidence: EVIDENCE/0D-2_RENDERER_MATERIAL_EVALUATOR/REPORT.md.
+- Boundary: abstraction is not claimed as original internal architecture; undocumented flag combinations and original runtime equivalence remain open.
