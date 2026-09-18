@@ -302,3 +302,12 @@ Added `NEW_ERA_IMPLEMENTATION/renderer/renderer_quad_compat.h` and regression `t
 - Added repository-native GitHub Actions validation for F1 TS-13..TS-25 and renderer 0D-2/0D-3/0D-4 regressions.
 - PR #1 merged to main as commit `6db7a4a743487ac67e02c6708ca84332e7964617`.
 - The workflow is now the canonical executable validation path. No PASS is claimed for TS-25 until an actual CI/runtime execution reports PASS. The available GitHub connector did not expose a workflow run/status for the new commit, so this boundary remains explicitly unverified rather than inferred.
+
+
+## 2026-09-18 — 1.3-PM Server PacketManager seed/key-load closure
+- **1.3-PM / TS-26 IMPLEMENTED**: added `crypto_cpacketmanager_server.h` with the recovered classic GameServer `m_XorFilter[32]`, `LoadKey`/ENCDEC loader integration, C1/C2 extraction and exact descending `XorData` transform.
+- Regression: `NEW_ERA_IMPLEMENTATION/test_server/ts26_packetmanager_seed_loopback.cpp`; CMake target `ts26_packetmanager_seed_loopback`.
+- Production Enc1 fixture checks recovered `Modulus[0]=0x1F44F`, `Key[0]=0x5BC1`, `Xor[0]=0xBD1D` and the full filter seed boundaries.
+- Evidence: `EVIDENCE/1.3-PM/NEW_ERA_1_3_PM_PACKETMANAGER_SEED_AND_KEYLOAD_REPORT.md`.
+- Isolated C++17 equivalent fixture executed with `-Wall -Wextra -Wpedantic`: **PASS**.
+- Boundary: repository-wide CMake/CI result and live GameServer integration are not claimed; DES/XEX3 >=701 remains separate.
