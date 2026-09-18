@@ -1357,3 +1357,11 @@ Next (P2):
 - CI: dedicated workflow `.github/workflows/new-era-ts27.yml`; run `35390287725` = **SUCCESS**.
 - Evidence: `EVIDENCE/1.3-C4/NEW_ERA_1_3_C4_SERVER_RX_REPORT.md`.
 - Boundary: >=701 DES-XEX3, live original GameServer socket integration and connection/session serial semantics remain open.
+
+
+## 98. FASE 1 — 1.3-DESX: >=701 DES-XEX3 primitive — FECHADO (2026-09-18)
+- `crypto_des_xex3.h`: 24-byte key, 8-byte block, Crypto++ DES_XEX3-compatible pre/post whitening around DES core.
+- `ts28_des_xex3_loopback.cpp`: deterministic known vector + decrypt round-trip.
+- CI workflow `.github/workflows/new-era-ts28.yml`; run `35394342879` = **SUCCESS**.
+- Evidence: `EVIDENCE/1.3-DESX/NEW_ERA_1_3_DESX_PRIMITIVE_REPORT.md`.
+- Boundary: production key source and exact live GameServer transport composition/dispatch remain open.
