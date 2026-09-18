@@ -402,3 +402,11 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Validation: C++17 `-Wall -Wextra -Wpedantic -pthread`; `0D-3 renderer triangle batch contract: PASS`, exit 0.
 - Evidence: `EVIDENCE/0D-3_RENDERER_TRIANGLE_BATCH/REPORT.md`.
 - Boundary: no GPU backend/performance equivalence; non-triangle and material-specific generation remain open.
+
+
+## FASE 1 — 0D-4 Renderer Quad Compatibility Batch (2026-09-18)
+- **EXECUTED/DELIVERED/PASS**: explicit four-corner compatibility path added to renderer batching.
+- Core: `NEW_ERA_IMPLEMENTATION/renderer/renderer_quad_compat.h`; regression: `test_renderer_quad_compat.cpp`.
+- Validation: isolated C++17 fixture with `-Wall -Wextra -Wpedantic`; `0D-4 quad compatibility triangulation: PASS`, exit 0.
+- Evidence: `EVIDENCE/0D-4_RENDERER_QUAD_COMPAT/REPORT.md`.
+- Boundary: `0,1,2 + 0,2,3` is a NEW-ERA compatibility policy, not a claim about the original rasterizer's diagonal.
