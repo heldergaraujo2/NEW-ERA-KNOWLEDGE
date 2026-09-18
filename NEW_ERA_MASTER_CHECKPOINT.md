@@ -442,3 +442,11 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Evidence: `EVIDENCE/1.3-C4/NEW_ERA_1_3_C4_SERVER_RX_REPORT.md`.
 - Dedicated CI run `35390287725`: SUCCESS.
 - Remaining cryptographic boundary: `GAMESERVER_UPDATE>=701` DES-XEX3 and live original GameServer socket interoperability.
+
+
+## 2026-09-18 — 1.3-DESX primitive closure
+- **1.3-DESX IMPLEMENTED / CI PASS**: Crypto++-compatible DES_XEX3 primitive, 24-byte key, 8-byte block, pre/post whitening around DES core.
+- Regression: `ts28_des_xex3_loopback`.
+- Dedicated CI run `35394342879`: SUCCESS.
+- Evidence: `EVIDENCE/1.3-DESX/NEW_ERA_1_3_DESX_PRIMITIVE_REPORT.md`.
+- Remaining >=701 boundary: production key source and exact live GameServer transport composition/dispatch.
