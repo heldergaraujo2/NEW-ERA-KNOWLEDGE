@@ -212,3 +212,20 @@ Added `test_f1_01_production_enc1_tcp_loopback.cpp`, which uses the exact produc
 Commits: implementation `66e105919702bd2cae97e47ac4af934b5f5c22a9`; CMake corrected target `611eab7444f5bddd7fe289d269f81b42136427ff`; evidence `f6235040ac53effc48849a9b7f8a51634801a7b1`.
 
 Validation boundary: execution container lacks repository checkout/network, so no fresh full-repository CMake run is claimed. Underlying production-key golden remains independently proven by TS-21. Original Windows/MU/GameServer interoperability remains unverified.
+
+
+## 1.0-F9 — F1:01 server-side RX decoder (2026-09-18)
+**STATUS: EXECUTED / DELIVERED — production-key round-trip proven by independent executable fixture**
+
+Completed the server-side cryptographic/protocol RX layer for F1:01. Decoder: C3 validation → classic SimpleModulus decrypt → 50-byte logical C1 reconstruction with serial at byte 1 → reverse chained XOR → BuxDecrypt ID/password → extraction of TickCount, Version[5], ProtocolSerial[16], packet serial.
+
+Implementation: NEW_ERA_IMPLEMENTATION/mvp_login/f1_01_login_server_rx.h
+Regression: NEW_ERA_IMPLEMENTATION/mvp_login/loopback_f1_01_login_request/test_f1_01_server_rx_production_loopback.cpp
+CMake target: ts23_f1_01_server_rx_production_loopback
+Evidence: EVIDENCE/1.0-F9_SERVER_RX_F1_01/REPORT.md
+
+Key basis: KEYS_MANIFEST.md proves Dec1 is the server-RX inverse-key partner of Enc1 with identical Modulus/Xor. Test derives the Dec1 lane from the already verified production Enc1 fixture; no key invention.
+
+Validation: C++17 decoder syntax/compile fixture PASS; independent executable production-key encrypt/decrypt/stream-XOR/Bux round-trip PASS with all selected fields recovered exactly. Full repository CMake execution remains unclaimed because the execution container has no checkout/network.
+
+Boundary: original GameServer authentication/database/JoinServer decision code and original Windows runtime remain separate layers.
