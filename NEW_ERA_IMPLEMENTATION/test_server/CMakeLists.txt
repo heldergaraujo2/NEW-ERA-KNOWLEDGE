@@ -76,3 +76,6 @@ if(WIN32)
   target_link_libraries(ts22_f1_01_production_enc1_tcp_loopback PRIVATE ws2_32)
   target_link_libraries(ts23_f1_01_server_rx_production_loopback PRIVATE ws2_32)\n  target_link_libraries(ts24_f1_login_server_decision PRIVATE ws2_32)
 endif()
+
+add_executable(ts25_f1_production_login_tcp_integration ts25_f1_production_login_tcp_integration.cpp)
+target_compile_features(ts25_f1_production_login_tcp_integration PRIVATE cxx_std_17)
