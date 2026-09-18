@@ -316,3 +316,10 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Target: ts19_f1_login_flow_tcp_loopback.
 - Validation: C++17 + CMake fixture, real TCP loopback, exit 0.
 - Boundary: deterministic test keys; no production Enc1.dat or original Windows/MU/GameServer interoperability claim.
+
+
+## F1:01 packet-serial correction (2026-09-18)
+- 1.0-F5 EXECUTED/DELIVERED/PASS: corrected F1:01 C3 construction to match upstream SendPacket: serial inserted at C1 [1], C1 [0] excluded from SimpleModulus, encrypted span [1..49], XOR starts [3].
+- Corrected golden: c34f0de31e1a4537821084daef63cf193a06e9118ad4d9ecae551825c3a8e23bc4093c87c61b5c4c8403a55c10254f4f154a8c97036638f7c2a29908798c2300c71cc9fc0a0409050aa2421cd86f53.
+- Validation: C++17 standalone fixture + real TCP loopback; TS-20 F1:01 packet-serial placement + C3 TCP loopback: PASS, exit 0.
+- This supersedes the earlier incorrect F1:01 deterministic vector; production Enc1.dat/original runtime remain unverified.
