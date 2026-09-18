@@ -426,3 +426,11 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - CI workflow: `.github/workflows/new-era-phase1.yml`.
 - Merged PR #1: `6db7a4a743487ac67e02c6708ca84332e7964617`.
 - Status boundary: CI infrastructure is merged, but no workflow result is visible through the available GitHub status/run interface. Therefore TS-25 is still not marked PASS and Phase 1 F1 runtime interoperability is not claimed.
+
+
+## 2026-09-18 — 1.3-PM Server PacketManager seed/key-load closure
+- **1.3-PM / TS-26 IMPLEMENTED**: server-side classic PacketManager seed, ENCDEC loader, C1/C2 extraction and XorData path added.
+- Regression target: `ts26_packetmanager_seed_loopback`.
+- Evidence: `EVIDENCE/1.3-PM/NEW_ERA_1_3_PM_PACKETMANAGER_SEED_AND_KEYLOAD_REPORT.md`.
+- Isolated C++17 equivalent fixture: **PASS**.
+- This closes the documented classic PacketManager seeding gap. It does not claim live GameServer integration or >=701 DES/XEX3 behavior.
