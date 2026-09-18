@@ -5,8 +5,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "../crypto_cpacketmanager_server.h"
-#include "../crypto_c4_server_rx.h"
+#include "../mvp_login/crypto_cpacketmanager_server.h"
+#include "../mvp_login/crypto_c4_server_rx.h"
 
 static std::vector<uint8_t> ApplyWireXor(const std::vector<uint8_t>& plain,
                                          const std::array<uint8_t,32>& filter) {
