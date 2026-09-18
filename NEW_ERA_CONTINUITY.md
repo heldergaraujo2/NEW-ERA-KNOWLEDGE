@@ -285,3 +285,12 @@ Added `NEW_ERA_IMPLEMENTATION/renderer/renderer_mesh_batch.h` and regression `te
 **STATUS: EXECUTED / DELIVERED / PASS**
 
 Added `NEW_ERA_IMPLEMENTATION/renderer/renderer_quad_compat.h` and regression `test_renderer_quad_compat.cpp`. Four-corner source geometry is explicitly converted to two indexed triangles (`0,1,2` + `0,2,3`) while preserving per-corner vertex/normal/UV associations. Exact core/test logic compiled in an isolated C++17 fixture with `-Wall -Wextra -Wpedantic`; observed `0D-4 quad compatibility triangulation: PASS`, exit 0. Evidence: `EVIDENCE/0D-4_RENDERER_QUAD_COMPAT/REPORT.md`. Boundary: triangulation diagonal is a NEW-ERA policy, not claimed as original rasterization behavior.
+
+
+## 2026-09-18 — Test harness audit / CMake repair
+- Audited the current repository state against the continuity/checkpoint chain.
+- Found and repaired the TS-14 CMake source path: the logout regression lives under `mvp_login/loopback_f1_02_logout_request/test_f1_02_logout_request_loopback.cpp`.
+- Removed duplicated TS-23 include/compile declarations and normalized the malformed literal `\\n` sequences around TS-23/TS-24.
+- Commit: `6c8afbf600f4f5470f29e03a964ce4dd81b338d6`.
+- **Important boundary:** repository-wide CMake configure/build and TS-25 runtime PASS are still not claimed from this environment. The next validation step is an actual checkout/build/run of the repaired test harness, then close F1-F11 only if TS-25 produces the expected `c105f10101` result.
+- Do not mark TS-25 PASS from source inspection alone.
