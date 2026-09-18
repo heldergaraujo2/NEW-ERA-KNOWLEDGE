@@ -267,3 +267,9 @@ Evidence-only renderer baseline recovered from pinned `wongddd/muonline@580472e`
 
 Key conclusion: preserve render semantics/pass ordering while replacing legacy mechanisms with persistent GPU buffers, batching, explicit material/state sorting, resource handles, and behaviorally compatible camera math. No original runtime performance or future-renderer equivalence claimed.
 
+
+
+## 0D-2 — Renderer Material Evaluator (2026-09-18)
+**STATUS: EXECUTED / DELIVERED / PASS**
+
+Added NEW_ERA_IMPLEMENTATION/renderer/renderer_material.h and regression NEW_ERA_IMPLEMENTATION/renderer/test_renderer_material.cpp. The abstraction converts recovered ZzzBMD render flags into explicit material path and blend/alpha/depth decisions. C++17 -Wall -Wextra -Wpedantic validation passed: 0D-2 renderer material evaluator: PASS. Evidence: EVIDENCE/0D-2_RENDERER_MATERIAL_EVALUATOR/REPORT.md. Boundary: compatibility abstraction only; undocumented combinations and original runtime equivalence remain unverified.
