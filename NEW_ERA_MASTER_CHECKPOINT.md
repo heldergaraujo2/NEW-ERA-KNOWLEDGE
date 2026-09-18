@@ -434,3 +434,11 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Evidence: `EVIDENCE/1.3-PM/NEW_ERA_1_3_PM_PACKETMANAGER_SEED_AND_KEYLOAD_REPORT.md`.
 - Isolated C++17 equivalent fixture: **PASS**.
 - This closes the documented classic PacketManager seeding gap. It does not claim live GameServer integration or >=701 DES/XEX3 behavior.
+
+
+## 2026-09-18 — 1.3-C4 Server C4 RX closure
+- **1.3-C4 IMPLEMENTED / CI PASS**: classic C4 framing (u16 BE), SimpleModulus server decrypt, inner C2 validation and PacketManager XOR32 reversal.
+- Regression target: `ts27_c4_server_rx_loopback`.
+- Evidence: `EVIDENCE/1.3-C4/NEW_ERA_1_3_C4_SERVER_RX_REPORT.md`.
+- Dedicated CI run `35390287725`: SUCCESS.
+- Remaining cryptographic boundary: `GAMESERVER_UPDATE>=701` DES-XEX3 and live original GameServer socket interoperability.
