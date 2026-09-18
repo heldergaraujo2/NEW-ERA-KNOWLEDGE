@@ -100,3 +100,18 @@ Boundary: production Enc1.dat interoperability remains unverified because the av
 - a4cbee05a7d5251a687c78c91168a6bdd1c31b75 — F1:02 TCP regression
 - 2fc3837ddac7b593b1c5da7834281cf897705441 — CMake TS14
 - 946d79bca1f7e96e181a368d7f3719f8fadc636c — F1:02 evidence
+
+
+### 1.0-D — F1:03 Hacking Check Request builder + C3/TCP loopback
+**STATUS: EXECUTED / DELIVERED / PASS (test-key scope)**
+
+Implemented from pinned upstream SendHackingChecked(byType, byParam): exact logical [C1][06][F1][03][Type][Param], proven chained XOR, SimpleModulus C3 builder, deterministic golden vector, and real TCP loopback. CMake target: ts15_f1_03_hacking_check_loopback.
+
+Implementation: NEW_ERA_IMPLEMENTATION/mvp_login/f1_03_hacking_check_request.h
+Regression: NEW_ERA_IMPLEMENTATION/mvp_login/loopback_f1_03_hacking_check/test_f1_03_hacking_check_loopback.cpp
+Evidence: EVIDENCE/1.0-D_F1_03_HACKING_CHECK/REPORT.md
+
+Verified result: TS-15 F1:03 hacking-check C3 TCP loopback: PASS; exit 0.
+Golden logical vector: c106f17bd553. Production-key interoperability and original Windows/MU/ASIO runtime remain unverified.
+
+Latest commits: ae61fdec9d1e25beae5e024876af5256c2937bb7 (core); a76965c2d2f97b21fc3641a552f4e9d7c933f2c4 (golden correction); 6f8bd189d63092aef9dca7017d2654e4f07fec8b (CMake); b7656909e9420688e16f08b1727a3c2e621b4231 (evidence).
