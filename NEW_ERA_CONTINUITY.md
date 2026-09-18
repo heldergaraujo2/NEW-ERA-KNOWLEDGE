@@ -158,3 +158,22 @@ Verified output:
 Validation: C++17/g++ and an independent CMake fixture, warnings enabled, real TCP loopback on 127.0.0.1, exit 0. The execution container lacked a repository checkout, so the committed core and TS-19 source were reproduced into the validation fixture.
 
 Boundary: deterministic injected SimpleModulus test keys only; production Enc1.dat interoperability, original Windows/MU client/ASIO path, original GameServer, and server-side credential authentication remain unverified.
+
+
+## 1.0-F5 — F1:01 packet-serial placement correction (2026-09-18)
+**STATUS: EXECUTED / DELIVERED / PASS**
+
+A critical protocol-fidelity correction was completed after re-reading the pinned upstream wsclientinline.h SendPacket implementation. For C1 packets, upstream inserts g_byPacketSerialSend++ into byte [1] (replacing the C1 size byte) and then calls SimpleModulus on byBuffer + 1 for len - 1 bytes. Therefore the C1 header byte [0] is not encrypted, packet serial [1] is the first encrypted byte, and the chained XOR remains [3..49).
+
+Corrected:
+- NEW_ERA_IMPLEMENTATION/mvp_login/f1_01_login_request.h
+- NEW_ERA_IMPLEMENTATION/mvp_login/loopback_f1_01_login_request/test_f1_01_login_request_loopback_v2.cpp
+- NEW_ERA_PROTOCOL_MVP_LOGIN_SPEC.md
+- EVIDENCE/1.0-B_F1_01_LOGIN_REQUEST/REPORT.md
+
+Corrected deterministic C3 golden:
+c34f0de31e1a4537821084daef63cf193a06e9118ad4d9ecae551825c3a8e23bc4093c87c61b5c4c8403a55c10254f4f154a8c97036638f7c2a29908798c2300c71cc9fc0a0409050aa2421cd86f53
+
+Validation: standalone C++17 fixture, -Wall -Wextra -Wpedantic -pthread, SimpleModulus round-trip with inverse deterministic key, exact golden comparison, and real TCP loopback. Result: TS-20 F1:01 packet-serial placement + C3 TCP loopback: PASS, exit 0.
+
+This correction supersedes the earlier incorrect TS-13 golden vector. Production Enc1.dat interoperability and original Windows/MU/GameServer runtime remain unverified.
