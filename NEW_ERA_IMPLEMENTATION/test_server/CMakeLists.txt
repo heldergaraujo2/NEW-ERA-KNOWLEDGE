@@ -83,6 +83,12 @@ add_executable(ts17_f1_login_session_loopback
 target_include_directories(ts17_f1_login_session_loopback PRIVATE ../mvp_login)
 target_compile_features(ts17_f1_login_session_loopback PRIVATE cxx_std_17)
 
+add_executable(ts18_f1_login_flow_loopback
+  ../mvp_login/loopback_f1_login_flow/test_f1_login_flow_loopback.cpp
+)
+target_include_directories(ts18_f1_login_flow_loopback PRIVATE ../mvp_login)
+target_compile_features(ts18_f1_login_flow_loopback PRIVATE cxx_std_17)
+
 if (WIN32)
   target_link_libraries(new_era_test_server PRIVATE ws2_32)
   target_link_libraries(ts4_f3_13_both_message_loopback PRIVATE ws2_32)
@@ -98,4 +104,5 @@ if (WIN32)
   target_link_libraries(ts15_f1_03_hacking_check_loopback PRIVATE ws2_32)
   target_link_libraries(ts16_f1_login_rx_loopback PRIVATE ws2_32)
   target_link_libraries(ts17_f1_login_session_loopback PRIVATE ws2_32)
+  target_link_libraries(ts18_f1_login_flow_loopback PRIVATE ws2_32)
 endif()
