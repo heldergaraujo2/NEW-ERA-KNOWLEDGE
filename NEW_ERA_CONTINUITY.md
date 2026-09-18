@@ -115,3 +115,19 @@ Verified result: TS-15 F1:03 hacking-check C3 TCP loopback: PASS; exit 0.
 Golden logical vector: c106f17bd553. Production-key interoperability and original Windows/MU/ASIO runtime remain unverified.
 
 Latest commits: ae61fdec9d1e25beae5e024876af5256c2937bb7 (core); a76965c2d2f97b21fc3641a552f4e9d7c933f2c4 (golden correction); 6f8bd189d63092aef9dca7017d2654e4f07fec8b (CMake); b7656909e9420688e16f08b1727a3c2e621b4231 (evidence).
+
+
+## Latest completed objective
+### 1.0-E — F1 RX handshake validation + F1:01 login result parser
+**STATUS: EXECUTED / DELIVERED / PASS**
+
+Implemented client-side RX closure for the normative login flow: F1:00 Version[i]-(i+1) validation and F1:01 C1 login-result parsing/mapping. Added truncation/version-mismatch negatives, compatibility 0x20 success, generic fallback, real TCP loopback, and CMake target `ts16_f1_login_rx_loopback`.
+
+Implementation: `NEW_ERA_IMPLEMENTATION/mvp_login/f1_login_rx.h`
+Regression: `NEW_ERA_IMPLEMENTATION/mvp_login/loopback_f1_login_rx/test_f1_login_rx_loopback.cpp`
+Evidence: `EVIDENCE/1.0-E_F1_RX/REPORT.md`
+
+Verified result: `TS-16 F1:00 validation + F1:01 result RX TCP loopback: PASS`; exit 0.
+Golden vectors: F1:00 `c10cf100011234342e2f3d3d`; F1:01 success `c105f10101`; compatibility success `c105f10120`.
+
+Validation was a recreated C++17 fixture because the execution container did not have a repository checkout/network; it used the exact committed core/test content and real TCP loopback on 127.0.0.1. No original Windows/MU runtime integration or production-key interoperability claim is made.
