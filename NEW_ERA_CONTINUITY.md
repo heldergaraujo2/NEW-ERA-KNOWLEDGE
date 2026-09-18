@@ -294,3 +294,11 @@ Added `NEW_ERA_IMPLEMENTATION/renderer/renderer_quad_compat.h` and regression `t
 - Commit: `6c8afbf600f4f5470f29e03a964ce4dd81b338d6`.
 - **Important boundary:** repository-wide CMake configure/build and TS-25 runtime PASS are still not claimed from this environment. The next validation step is an actual checkout/build/run of the repaired test harness, then close F1-F11 only if TS-25 produces the expected `c105f10101` result.
 - Do not mark TS-25 PASS from source inspection alone.
+
+
+## 2026-09-18 — Phase 1 validation harness consolidated
+- Repaired the F1 test-server CMake after source inspection exposed a remaining literal escape and duplicate TS-23 declarations.
+- Final CMake repair commit: `16a068db945ba06b36f2d662f8caa2f8ea68b58c`.
+- Added repository-native GitHub Actions validation for F1 TS-13..TS-25 and renderer 0D-2/0D-3/0D-4 regressions.
+- PR #1 merged to main as commit `6db7a4a743487ac67e02c6708ca84332e7964617`.
+- The workflow is now the canonical executable validation path. No PASS is claimed for TS-25 until an actual CI/runtime execution reports PASS. The available GitHub connector did not expose a workflow run/status for the new commit, so this boundary remains explicitly unverified rather than inferred.
