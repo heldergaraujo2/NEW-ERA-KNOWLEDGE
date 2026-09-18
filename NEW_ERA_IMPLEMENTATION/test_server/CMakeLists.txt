@@ -81,9 +81,14 @@ if(WIN32)
   target_link_libraries(ts24_f1_login_server_decision PRIVATE ws2_32)
 endif()
 
+add_executable(ts26_packetmanager_seed_loopback ts26_packetmanager_seed_loopback.cpp)
+target_include_directories(ts26_packetmanager_seed_loopback PRIVATE ../mvp_login)
+target_compile_features(ts26_packetmanager_seed_loopback PRIVATE cxx_std_17)
+
 add_executable(ts25_f1_production_login_tcp_integration ts25_f1_production_login_tcp_integration.cpp)
 target_compile_features(ts25_f1_production_login_tcp_integration PRIVATE cxx_std_17)
 
 if(WIN32)
+  target_link_libraries(ts26_packetmanager_seed_loopback PRIVATE ws2_32)
   target_link_libraries(ts25_f1_production_login_tcp_integration PRIVATE ws2_32)
 endif()
