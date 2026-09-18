@@ -258,3 +258,12 @@ Evidence: EVIDENCE/1.0-F11_PRODUCTION_LOGIN_TCP_INTEGRATION/REPORT.md
 The committed source uses the exact production Enc1 fixture, derives Dec1 from the committed inverse-key routine, decodes the 79-byte F1:01 C3 request, validates version/serial/credentials, and returns c105f10101. It includes POSIX/WinSock handling and Windows ws2_32 linkage.
 
 Validation boundary: this environment has no repository checkout/network, so TS-25 was not executed this turn. Therefore no PASS claim is made. TS-21/TS-22 independently prove production F1:01 TX; TS-24 proves decision/result mapping.
+
+
+## 0D-1 — Renderer Architecture Baseline (2026-09-18)
+**STATUS: EXECUTED / DELIVERED**
+
+Evidence-only renderer baseline recovered from pinned `wongddd/muonline@580472e`: OpenGL compatibility/immediate-mode pipeline, scene pass ordering, BMD mesh/material path, texture manager, camera/tour system, and optional GLSL 1.20 compatibility shaders. Report: `EVIDENCE/0D-1_RENDERER_ARCHITECTURE_BASELINE/REPORT.md`.
+
+Key conclusion: preserve render semantics/pass ordering while replacing legacy mechanisms with persistent GPU buffers, batching, explicit material/state sorting, resource handles, and behaviorally compatible camera math. No original runtime performance or future-renderer equivalence claimed.
+
