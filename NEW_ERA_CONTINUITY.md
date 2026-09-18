@@ -273,3 +273,9 @@ Key conclusion: preserve render semantics/pass ordering while replacing legacy m
 **STATUS: EXECUTED / DELIVERED / PASS**
 
 Added NEW_ERA_IMPLEMENTATION/renderer/renderer_material.h and regression NEW_ERA_IMPLEMENTATION/renderer/test_renderer_material.cpp. The abstraction converts recovered ZzzBMD render flags into explicit material path and blend/alpha/depth decisions. C++17 -Wall -Wextra -Wpedantic validation passed: 0D-2 renderer material evaluator: PASS. Evidence: EVIDENCE/0D-2_RENDERER_MATERIAL_EVALUATOR/REPORT.md. Boundary: compatibility abstraction only; undocumented combinations and original runtime equivalence remain unverified.
+
+
+## 0D-3 — Renderer Triangle Batch Contract (2026-09-18)
+**STATUS: EXECUTED / DELIVERED / PASS**
+
+Added `NEW_ERA_IMPLEMENTATION/renderer/renderer_mesh_batch.h` and regression `test_renderer_mesh_batch.cpp`. The contract converts recovered BMD triangle corner indices into GPU-oriented vertex/index arrays while preserving vertex/normal/UV associations. Only Polygon==3 is accepted; non-triangles are rejected rather than silently triangulated. C++17 validation passed: `0D-3 renderer triangle batch contract: PASS`, exit 0. Evidence: `EVIDENCE/0D-3_RENDERER_TRIANGLE_BATCH/REPORT.md`. Boundary: no GPU backend or performance equivalence claimed; material-specific vertex generation remains open.
