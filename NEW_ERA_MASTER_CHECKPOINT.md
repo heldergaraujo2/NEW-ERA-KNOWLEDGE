@@ -329,3 +329,10 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - F1:01 BuildC3 generated the verified production-key 79-byte golden recorded in EVIDENCE/1.0-F6_PRODUCTION_ENC1/REPORT.md.
 - Regression: test_f1_01_production_enc1_vector.cpp; output: TS-21 F1:01 production Enc1 loader + C3 golden: PASS.
 - Boundary remaining: original Windows/MU/GameServer runtime interoperability.
+
+
+## 1.0-F7 — CMake integration of TS-21 production Enc1 vector (2026-09-18)
+- **EXECUTED/DELIVERED**: CMake target `ts21_f1_01_production_enc1_vector` added, sourcing the existing TS-21 production Enc1 regression.
+- Commit: `c8149f6064221374345c550fa9e118866b5990ea`.
+- Evidence: `EVIDENCE/1.0-F7_CMAKE_TS21/REPORT.md`.
+- No fresh full-repository CMake execution claimed because the execution container lacks repository checkout/network; prior TS-21 standalone production-key vector remains PASS.
