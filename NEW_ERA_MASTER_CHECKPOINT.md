@@ -410,3 +410,12 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Validation: isolated C++17 fixture with `-Wall -Wextra -Wpedantic`; `0D-4 quad compatibility triangulation: PASS`, exit 0.
 - Evidence: `EVIDENCE/0D-4_RENDERER_QUAD_COMPAT/REPORT.md`.
 - Boundary: `0,1,2 + 0,2,3` is a NEW-ERA compatibility policy, not a claim about the original rasterizer's diagonal.
+
+
+## 2026-09-18 — Test harness audit / CMake repair
+- Repository audit identified concrete CMake hygiene defects in the F1 test harness.
+- TS-14 source path corrected to the committed logout regression location.
+- TS-23/TS-24 declarations normalized and duplicate TS-23 declarations removed.
+- Commit: `6c8afbf600f4f5470f29e03a964ce4dd81b338d6`.
+- Continuity update: `31b1365e0fbed994d885303e733ccf6712b7fa73`.
+- **Validation boundary:** this repair is source-verified only; no repository-wide configure/build/runtime PASS is claimed yet. TS-25 remains EXECUTED/DELIVERED without PASS until the repaired harness is actually built and run.
