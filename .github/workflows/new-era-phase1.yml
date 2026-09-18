@@ -1,0 +1,61 @@
+name: NEW-ERA Phase 1 validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  f1-and-renderer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure test server
+        run: cmake -S NEW_ERA_IMPLEMENTATION/test_server -B build/test_server -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build F1 phase targets
+        run: |
+          cmake --build build/test_server --config Release --parallel 2 --target \
+            ts13_f1_01_login_request_loopback \
+            ts14_f1_02_logout_request_loopback \
+            ts15_f1_03_hacking_check_loopback \
+            ts16_f1_login_rx_loopback \
+            ts17_f1_login_session_loopback \
+            ts18_f1_login_flow_loopback \
+            ts19_f1_login_flow_tcp_loopback \
+            ts21_f1_01_production_enc1_vector \
+            ts22_f1_01_production_enc1_tcp_loopback \
+            ts23_f1_01_server_rx_production_loopback \
+            ts24_f1_login_server_decision \
+            ts25_f1_production_login_tcp_integration
+
+      - name: Run F1 regression suite
+        run: |
+          set -e
+          build/test_server/ts13_f1_01_login_request_loopback
+          build/test_server/ts14_f1_02_logout_request_loopback
+          build/test_server/ts15_f1_03_hacking_check_loopback
+          build/test_server/ts16_f1_login_rx_loopback
+          build/test_server/ts17_f1_login_session_loopback
+          build/test_server/ts18_f1_login_flow_loopback
+          build/test_server/ts19_f1_login_flow_tcp_loopback
+          build/test_server/ts21_f1_01_production_enc1_vector
+          build/test_server/ts22_f1_01_production_enc1_tcp_loopback
+          build/test_server/ts23_f1_01_server_rx_production_loopback
+          build/test_server/ts24_f1_login_server_decision
+          build/test_server/ts25_f1_production_login_tcp_integration
+
+      - name: Build renderer 0D regressions
+        run: |
+          c++ -std=c++17 -Wall -Wextra -Wpedantic NEW_ERA_IMPLEMENTATION/renderer/test_renderer_material.cpp -o build/test_renderer_material
+          c++ -std=c++17 -Wall -Wextra -Wpedantic NEW_ERA_IMPLEMENTATION/renderer/test_renderer_mesh_batch.cpp -o build/test_renderer_mesh_batch
+          c++ -std=c++17 -Wall -Wextra -Wpedantic NEW_ERA_IMPLEMENTATION/renderer/test_renderer_quad_compat.cpp -o build/test_renderer_quad_compat
+
+      - name: Run renderer 0D regressions
+        run: |
+          set -e
+          build/test_renderer_material
+          build/test_renderer_mesh_batch
+          build/test_renderer_quad_compat
