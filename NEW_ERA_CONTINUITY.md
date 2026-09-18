@@ -131,3 +131,9 @@ Verified result: `TS-16 F1:00 validation + F1:01 result RX TCP loopback: PASS`; 
 Golden vectors: F1:00 `c10cf100011234342e2f3d3d`; F1:01 success `c105f10101`; compatibility success `c105f10120`.
 
 Validation was a recreated C++17 fixture because the execution container did not have a repository checkout/network; it used the exact committed core/test content and real TCP loopback on 127.0.0.1. No original Windows/MU runtime integration or production-key interoperability claim is made.
+
+
+## 1.0-F2 / 1.0-F3 — F1 client flow composition (2026-09-18)
+- 1.0-F2: F1 login session state machine implemented: F1:00 handshake/version/hero-key -> AwaitingResult -> F1:01 success/rejection. Core f1_login_session.h; regression ts17_f1_login_session_loopback; evidence EVIDENCE/1.0-F2_F1_LOGIN_SESSION/REPORT.md. Commits: 3f3ee48c68f8380e744ac5e0085e0a8dd61477a6, 37835e881cfa4510448c8561d4bdc4d2e49db599, f334c56e76e1b436f38d1faf80b0a11180aa0c50, 906aa8daff8f1dc147d5eb2d0586988bcf7ccd21.
+- 1.0-F3: F1 end-to-end flow coordinator implemented, composing F1:00 RX + F1:01 C3 TX + F1:01 RX. Core f1_login_flow.h; regression ts18_f1_login_flow_loopback; evidence EVIDENCE/1.0-F3_F1_END_TO_END_FLOW/REPORT.md. Commits: 1ce8b0bc4994aede4b07dc501f2479c19fd8f317, b77b291640ed2980b1643799d89f208f28a5932b, eb3cf14966396eb4d1858bfb5177caa16fc3b593, db75d22405412cf751eb506ff6d147d99ad765cb.
+- Validation boundary: TS-18 orchestration was validated with a recreated TCP fixture using the already-proven TS-13 79-byte C3 builder contract; full repository checkout/CMake execution was unavailable in the execution container. Production Enc1.dat and original Windows/MU runtime remain unverified.
