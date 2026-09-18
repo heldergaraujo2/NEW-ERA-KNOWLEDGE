@@ -177,3 +177,16 @@ c34f0de31e1a4537821084daef63cf193a06e9118ad4d9ecae551825c3a8e23bc4093c87c61b5c4c
 Validation: standalone C++17 fixture, -Wall -Wextra -Wpedantic -pthread, SimpleModulus round-trip with inverse deterministic key, exact golden comparison, and real TCP loopback. Result: TS-20 F1:01 packet-serial placement + C3 TCP loopback: PASS, exit 0.
 
 This correction supersedes the earlier incorrect TS-13 golden vector. Production Enc1.dat interoperability and original Windows/MU/GameServer runtime remain unverified.
+
+## 1.0-F6 — production Enc1.dat vector closure (2026-09-18)
+**STATUS: EXECUTED / DELIVERED / PASS**
+
+The real pinned upstream Client/Data/Enc1.dat blob was fetched from wongddd/muonline@580472e as base64, decoded unchanged, and SHA256-verified as ee73a59bf278d42735e537c96c25cc1ad0f69f1de089a7b20a1e6d2910a4372d (54 bytes). The existing loader parsed it successfully; BuildC3 then generated the deterministic F1:01 production-key golden:
+c34f1fac23f486f52295d0daefbe0868fac969b3b604d9ecead643f6163f566f2c093ccd111749d3502568e4102542337e4d96cf03b064f7c293bc61e5caf8e00a15c9fc2e397d52c62f214b046f53
+
+Regression: NEW_ERA_IMPLEMENTATION/mvp_login/loopback_f1_01_login_request/test_f1_01_production_enc1_vector.cpp
+Evidence: EVIDENCE/1.0-F6_PRODUCTION_ENC1/REPORT.md
+
+Verified output: TS-21 F1:01 production Enc1 loader + C3 golden: PASS
+
+Validation: C++17, -Wall -Wextra -Wpedantic -pthread, exact 54-byte production blob fixture, loader/key assertions, exact 79-byte golden comparison. Production-key crypto interoperability is now verified at the deterministic vector level. Original Windows/MU/GameServer runtime interoperability remains unverified.
