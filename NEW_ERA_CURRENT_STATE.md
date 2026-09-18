@@ -651,3 +651,9 @@ The current implementation checkpoint is the combined F1 login/server path and r
 The test harness was audited and repaired. The canonical CMake now has valid TS-14, TS-23, TS-24 and TS-25 target declarations. A repository-native GitHub Actions workflow was merged at `.github/workflows/new-era-phase1.yml` to configure/build/run TS-13..TS-25 and renderer regressions.
 
 Current hard boundary: do not promote 1.0-F11 to PASS without an actual runtime/CI result for `ts25_f1_production_login_tcp_integration` returning `c105f10101`. Original MU/Windows/GameServer interoperability remains unverified.
+
+
+## 2026-09-18 — 1.3-PM Server PacketManager seed/key-load closure
+The documented classic GameServer PacketManager seeding gap is now implemented: the production 32-byte XOR filter, 54-byte ENCDEC `LoadKey` semantics, C1/C2 extraction and descending `XorData` transform are represented in `crypto_cpacketmanager_server.h`, with TS-26 regression and evidence.
+
+Validation boundary: an isolated C++17 equivalent fixture was compiled and executed successfully. The repository-wide CMake/Actions execution remains unavailable through the current GitHub run interface, so TS-26 is recorded as isolated PASS rather than repository-wide CI PASS. Live GameServer socket integration and the >=701 DES/XEX3 path remain open.
