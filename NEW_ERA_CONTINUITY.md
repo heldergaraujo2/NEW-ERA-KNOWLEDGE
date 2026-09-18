@@ -202,3 +202,13 @@ Evidence: `EVIDENCE/1.0-F7_CMAKE_TS21/REPORT.md`.
 Commit: `c8149f6064221374345c550fa9e118866b5990ea`.
 
 Validation boundary: no repository checkout/network in the execution container, so no fresh full-repository CMake execution is claimed. TS-21's previously recorded standalone C++17 production-key vector remains PASS. Original Windows/MU/GameServer interoperability remains unverified.
+
+
+## 1.0-F8 — Production Enc1 F1:01 TCP loopback (2026-09-18)
+**STATUS: EXECUTED / DELIVERED — implementation complete**
+
+Added `test_f1_01_production_enc1_tcp_loopback.cpp`, which uses the exact production Enc1 fixture and committed `BuildC3`, then sends the resulting 79-byte F1:01 C3 frame over a real 127.0.0.1 TCP connection and validates an exact byte-for-byte echo. Added CMake target `ts22_f1_01_production_enc1_tcp_loopback`.
+
+Commits: implementation `66e105919702bd2cae97e47ac4af934b5f5c22a9`; CMake corrected target `611eab7444f5bddd7fe289d269f81b42136427ff`; evidence `f6235040ac53effc48849a9b7f8a51634801a7b1`.
+
+Validation boundary: execution container lacks repository checkout/network, so no fresh full-repository CMake run is claimed. Underlying production-key golden remains independently proven by TS-21. Original Windows/MU/GameServer interoperability remains unverified.
