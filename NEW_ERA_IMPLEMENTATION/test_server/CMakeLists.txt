@@ -112,4 +112,11 @@ if (WIN32)
   target_link_libraries(ts17_f1_login_session_loopback PRIVATE ws2_32)
   target_link_libraries(ts18_f1_login_flow_loopback PRIVATE ws2_32)
   target_link_libraries(ts19_f1_login_flow_tcp_loopback PRIVATE ws2_32)
+  target_link_libraries(ts21_f1_01_production_enc1_vector PRIVATE ws2_32)
 endif()
+
+add_executable(ts21_f1_01_production_enc1_vector
+  ../mvp_login/loopback_f1_01_login_request/test_f1_01_production_enc1_vector.cpp
+)
+target_include_directories(ts21_f1_01_production_enc1_vector PRIVATE ../mvp_login)
+target_compile_features(ts21_f1_01_production_enc1_vector PRIVATE cxx_std_17)
