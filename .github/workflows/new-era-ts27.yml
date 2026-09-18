@@ -25,4 +25,14 @@ jobs:
           name: ts27-build-log
           path: build-ts27.log
       - name: Run TS-27
-        run: build/ts27/ts27_c4_server_rx_loopback
+        run: |
+          set +e
+          build/ts27/ts27_c4_server_rx_loopback 2>&1 | tee run-ts27.log
+          rc=${PIPESTATUS[0]}
+          exit $rc
+      - name: Upload run log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ts27-run-log
+          path: run-ts27.log
