@@ -113,7 +113,7 @@ if (WIN32)
   target_link_libraries(ts18_f1_login_flow_loopback PRIVATE ws2_32)
   target_link_libraries(ts19_f1_login_flow_tcp_loopback PRIVATE ws2_32)
   target_link_libraries(ts21_f1_01_production_enc1_vector PRIVATE ws2_32)
-  target_link_libraries(ts22_f1_f1_01_production_enc1_tcp_loopback PRIVATE ws2_32)
+  target_link_libraries(ts22_f1_01_production_enc1_tcp_loopback PRIVATE ws2_32)
 endif()
 
 add_executable(ts21_f1_01_production_enc1_vector
