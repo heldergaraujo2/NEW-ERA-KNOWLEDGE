@@ -345,3 +345,14 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Final CMake commit: `611eab7444f5bddd7fe289d269f81b42136427ff`.
 - Evidence: `EVIDENCE/1.0-F8_PRODUCTION_ENC1_TCP/REPORT.md`.
 - No fresh full-repository CMake execution claimed due to missing checkout/network; original runtime interoperability remains unverified.
+
+
+## 1.0-F9 — F1:01 server-side RX closure (2026-09-18)
+- **EXECUTED/DELIVERED**: implemented `NEW_ERA_IMPLEMENTATION/mvp_login/f1_01_login_server_rx.h` and production-key regression `test_f1_01_server_rx_production_loopback.cpp`.
+- CMake target: `ts23_f1_01_server_rx_production_loopback`.
+- Evidence: `EVIDENCE/1.0-F9_SERVER_RX_F1_01/REPORT.md`.
+- Protocol path closed: C3 framing validation → SimpleModulus RX → logical C1 reconstruction → reverse chained XOR → BuxDecrypt credentials → TickCount/Version/ProtocolSerial extraction.
+- `KEYS_MANIFEST.md` proves Dec1 is the modular-inverse RX partner of Enc1; test derives Dec1 keys from the already verified production Enc1 fixture.
+- Validation: C++17 decoder syntax/compile fixture PASS; independent executable production-key end-to-end round-trip PASS, with ID `TestHero`, password `P@ss123`, TickCount `0x78563412`, Version `12345`, ProtocolSerial `A0..AF`, packet serial `0x07` recovered exactly.
+- Full repository CMake execution is not claimed because the execution container has no repository checkout/network.
+- Boundary: original GameServer authentication/database/JoinServer decision logic and original Windows runtime remain unverified.
