@@ -663,3 +663,9 @@ Validation boundary: an isolated C++17 equivalent fixture was compiled and execu
 The classic C4 receive layer is implemented and independently validated in GitHub Actions. `crypto_c4_server_rx.h` validates the C4 u16-BE frame, decrypts its SimpleModulus payload, validates the recovered C2 packet and reverses the server XOR32 chain. TS-27 uses the already verified production Enc1-derived key material and a 300-byte inner C2 frame. Dedicated CI run 35390287725 completed SUCCESS.
 
 Current boundary: >=701 DES-XEX3, live original GameServer integration and connection/session serial semantics remain open.
+
+
+## 2026-09-18 — 1.3-DESX primitive closure
+The >=701 DES_XEX3 primitive is now implemented and independently validated in GitHub Actions. The compatibility layer follows the Crypto++ 24-byte-key/8-byte-block DESX contract and performs pre-whitening, single-DES core and post-whitening. TS-28 completed SUCCESS in dedicated run 35394342879.
+
+Current boundary: production DES-XEX3 key source and exact live GameServer composition/dispatch remain open; the primitive itself is closed.
