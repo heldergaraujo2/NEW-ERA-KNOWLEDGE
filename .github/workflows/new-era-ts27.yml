@@ -1,0 +1,18 @@
+name: NEW-ERA TS-27 C4 validation
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ts27-c4:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S NEW_ERA_IMPLEMENTATION/test_server -B build/ts27 -DCMAKE_BUILD_TYPE=Release
+      - name: Build TS-27
+        run: cmake --build build/ts27 --config Release --target ts27_c4_server_rx_loopback --parallel 2
+      - name: Run TS-27
+        run: build/ts27/ts27_c4_server_rx_loopback
