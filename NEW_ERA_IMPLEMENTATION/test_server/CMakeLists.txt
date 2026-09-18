@@ -1,101 +1,61 @@
 cmake_minimum_required(VERSION 3.16)
-
 project(new_era_test_server LANGUAGES CXX)
-
-add_executable(new_era_test_server
-  new_era_test_server.cpp
-)
-
+add_executable(new_era_test_server new_era_test_server.cpp)
 target_compile_features(new_era_test_server PRIVATE cxx_std_17)
 
-add_executable(ts4_f3_13_both_message_loopback
-  ts4_f3_13_both_message_loopback.cpp
-)
+add_executable(ts4_f3_13_both_message_loopback ts4_f3_13_both_message_loopback.cpp)
 target_compile_features(ts4_f3_13_both_message_loopback PRIVATE cxx_std_17)
-
-add_executable(ts5_f3_13_scripted_sequence_loopback
-  ts5_f3_13_scripted_sequence_loopback.cpp
-)
+add_executable(ts5_f3_13_scripted_sequence_loopback ts5_f3_13_scripted_sequence_loopback.cpp)
 target_compile_features(ts5_f3_13_scripted_sequence_loopback PRIVATE cxx_std_17)
-
-add_executable(ts6_f3_13_multi_accept_loopback
-  ts6_f3_13_multi_accept_loopback.cpp
-)
+add_executable(ts6_f3_13_multi_accept_loopback ts6_f3_13_multi_accept_loopback.cpp)
 target_compile_features(ts6_f3_13_multi_accept_loopback PRIVATE cxx_std_17)
-
-add_executable(ts8_combat_action_skill_rx_loopback
-  ../mvp_login/loopback_combat_action_skill_rx/test_combat_action_skill_loopback.cpp
-)
+add_executable(ts8_combat_action_skill_rx_loopback ../mvp_login/loopback_combat_action_skill_rx/test_combat_action_skill_loopback.cpp)
 target_include_directories(ts8_combat_action_skill_rx_loopback PRIVATE ../mvp_login)
 target_compile_features(ts8_combat_action_skill_rx_loopback PRIVATE cxx_std_17)
-
-add_executable(ts9_f3_13_equipment_apply_loopback
-  ../mvp_login/loopback_f3_13_equipment_apply/test_f3_13_equipment_apply_loopback.cpp
-)
+add_executable(ts9_f3_13_equipment_apply_loopback ../mvp_login/loopback_f3_13_equipment_apply/test_f3_13_equipment_apply_loopback.cpp)
 target_include_directories(ts9_f3_13_equipment_apply_loopback PRIVATE ../mvp_login)
 target_compile_features(ts9_f3_13_equipment_apply_loopback PRIVATE cxx_std_17)
-
-add_executable(ts10_both_attack_tx_loopback
-  ../mvp_login/loopback_both_attack_tx/test_both_attack_tx.cpp
-)
+add_executable(ts10_both_attack_tx_loopback ../mvp_login/loopback_both_attack_tx/test_both_attack_tx.cpp)
 target_include_directories(ts10_both_attack_tx_loopback PRIVATE ../mvp_login)
 target_compile_features(ts10_both_attack_tx_loopback PRIVATE cxx_std_17)
-
-add_executable(ts11_both_attack_tx_tcp_loopback
-  ../mvp_login/loopback_both_attack_tx/test_both_attack_tx_tcp.cpp
-)
+add_executable(ts11_both_attack_tx_tcp_loopback ../mvp_login/loopback_both_attack_tx/test_both_attack_tx_tcp.cpp)
 target_include_directories(ts11_both_attack_tx_tcp_loopback PRIVATE ../mvp_login)
 target_compile_features(ts11_both_attack_tx_tcp_loopback PRIVATE cxx_std_17)
-
-add_executable(ts12_f1_00_server_version_loopback
-  ../mvp_login/loopback_f1_00_server_version/test_f1_00_server_version_loopback.cpp
-)
+add_executable(ts12_f1_00_server_version_loopback ../mvp_login/loopback_f1_00_server_version/test_f1_00_server_version_loopback.cpp)
 target_include_directories(ts12_f1_00_server_version_loopback PRIVATE ../mvp_login)
 target_compile_features(ts12_f1_00_server_version_loopback PRIVATE cxx_std_17)
-
-add_executable(ts13_f1_01_login_request_loopback
-  ../mvp_login/loopback_f1_01_login_request/test_f1_01_login_request_loopback_v2.cpp
-)
+add_executable(ts13_f1_01_login_request_loopback ../mvp_login/loopback_f1_01_login_request/test_f1_01_login_request_loopback_v2.cpp)
 target_include_directories(ts13_f1_01_login_request_loopback PRIVATE ../mvp_login)
 target_compile_features(ts13_f1_01_login_request_loopback PRIVATE cxx_std_17)
-
-add_executable(ts14_f1_02_logout_request_loopback
-  ../mvp_login/loopback_f1_02_logout_request/test_f1_02_logout_request_loopback.cpp
-)
+add_executable(ts14_f1_02_logout_request_loopback ../mvp_login/loopback_f1_02_logout_request_loopback.cpp)
 target_include_directories(ts14_f1_02_logout_request_loopback PRIVATE ../mvp_login)
 target_compile_features(ts14_f1_02_logout_request_loopback PRIVATE cxx_std_17)
-
-add_executable(ts15_f1_03_hacking_check_loopback
-  ../mvp_login/loopback_f1_03_hacking_check/test_f1_03_hacking_check_loopback.cpp
-)
+add_executable(ts15_f1_03_hacking_check_loopback ../mvp_login/loopback_f1_03_hacking_check/test_f1_03_hacking_check_loopback.cpp)
 target_include_directories(ts15_f1_03_hacking_check_loopback PRIVATE ../mvp_login)
 target_compile_features(ts15_f1_03_hacking_check_loopback PRIVATE cxx_std_17)
-
-add_executable(ts16_f1_login_rx_loopback
-  ../mvp_login/loopback_f1_login_rx/test_f1_login_rx_loopback.cpp
-)
+add_executable(ts16_f1_login_rx_loopback ../mvp_login/loopback_f1_login_rx/test_f1_login_rx_loopback.cpp)
 target_include_directories(ts16_f1_login_rx_loopback PRIVATE ../mvp_login)
 target_compile_features(ts16_f1_login_rx_loopback PRIVATE cxx_std_17)
-
-add_executable(ts17_f1_login_session_loopback
-  ../mvp_login/loopback_f1_login_session/test_f1_login_session_loopback.cpp
-)
+add_executable(ts17_f1_login_session_loopback ../mvp_login/loopback_f1_login_session/test_f1_login_session_loopback.cpp)
 target_include_directories(ts17_f1_login_session_loopback PRIVATE ../mvp_login)
 target_compile_features(ts17_f1_login_session_loopback PRIVATE cxx_std_17)
-
-add_executable(ts18_f1_login_flow_loopback
-  ../mvp_login/loopback_f1_login_flow/test_f1_login_flow_loopback.cpp
-)
+add_executable(ts18_f1_login_flow_loopback ../mvp_login/loopback_f1_login_flow/test_f1_login_flow_loopback.cpp)
 target_include_directories(ts18_f1_login_flow_loopback PRIVATE ../mvp_login)
 target_compile_features(ts18_f1_login_flow_loopback PRIVATE cxx_std_17)
-
-add_executable(ts19_f1_login_flow_tcp_loopback
-  ts19_f1_login_flow_tcp_loopback.cpp
-)
+add_executable(ts19_f1_login_flow_tcp_loopback ts19_f1_login_flow_tcp_loopback.cpp)
 target_include_directories(ts19_f1_login_flow_tcp_loopback PRIVATE ../mvp_login)
 target_compile_features(ts19_f1_login_flow_tcp_loopback PRIVATE cxx_std_17)
+add_executable(ts21_f1_01_production_enc1_vector ../mvp_login/loopback_f1_01_login_request/test_f1_01_production_enc1_vector.cpp)
+target_include_directories(ts21_f1_01_production_enc1_vector PRIVATE ../mvp_login)
+target_compile_features(ts21_f1_01_production_enc1_vector PRIVATE cxx_std_17)
+add_executable(ts22_f1_01_production_enc1_tcp_loopback ../mvp_login/loopback_f1_01_login_request/test_f1_01_production_enc1_tcp_loopback.cpp)
+target_include_directories(ts22_f1_01_production_enc1_tcp_loopback PRIVATE ../mvp_login)
+target_compile_features(ts22_f1_01_production_enc1_tcp_loopback PRIVATE cxx_std_17)
+add_executable(ts23_f1_01_server_rx_production_loopback ../mvp_login/loopback_f1_01_login_request/test_f1_01_server_rx_production_loopback.cpp)
+target_include_directories(ts23_f1_01_server_rx_production_loopback PRIVATE ../mvp_login)
+target_compile_features(ts23_f1_01_server_rx_production_loopback PRIVATE cxx_std_17)
 
-if (WIN32)
+if(WIN32)
   target_link_libraries(new_era_test_server PRIVATE ws2_32)
   target_link_libraries(ts4_f3_13_both_message_loopback PRIVATE ws2_32)
   target_link_libraries(ts5_f3_13_scripted_sequence_loopback PRIVATE ws2_32)
@@ -114,16 +74,5 @@ if (WIN32)
   target_link_libraries(ts19_f1_login_flow_tcp_loopback PRIVATE ws2_32)
   target_link_libraries(ts21_f1_01_production_enc1_vector PRIVATE ws2_32)
   target_link_libraries(ts22_f1_01_production_enc1_tcp_loopback PRIVATE ws2_32)
+  target_link_libraries(ts23_f1_01_server_rx_production_loopback PRIVATE ws2_32)
 endif()
-
-add_executable(ts21_f1_01_production_enc1_vector
-  ../mvp_login/loopback_f1_01_login_request/test_f1_01_production_enc1_vector.cpp
-)
-target_include_directories(ts21_f1_01_production_enc1_vector PRIVATE ../mvp_login)
-target_compile_features(ts21_f1_01_production_enc1_vector PRIVATE cxx_std_17)
-
-add_executable(ts22_f1_01_production_enc1_tcp_loopback
-  ../mvp_login/loopback_f1_01_login_request/test_f1_01_production_enc1_tcp_loopback.cpp
-)
-target_include_directories(ts22_f1_01_production_enc1_tcp_loopback PRIVATE ../mvp_login)
-target_compile_features(ts22_f1_01_production_enc1_tcp_loopback PRIVATE cxx_std_17)
