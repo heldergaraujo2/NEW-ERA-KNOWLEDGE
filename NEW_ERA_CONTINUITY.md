@@ -244,3 +244,17 @@ Evidence: EVIDENCE/1.0-F10_SERVER_LOGIN_DECISION/REPORT.md
 Validation: recreated C++17 fixture with -Wall -Wextra -Wpedantic executed successfully. Observed: TS-24 F1 server login decision/result mapping: PASS. Full repository CMake execution remains unclaimed because the execution container has no checkout/network.
 
 Boundary: compatible decision-layer reconstruction only; original GameServer database/account/connection-state/JoinServer internals remain unverified.
+
+
+## 1.0-F11 — F1 production login TCP integration (2026-09-18)
+**STATUS: EXECUTED / DELIVERED — runtime PASS not claimed**
+
+Implemented TS-25 composition of production Enc1 F1:01 TX, server Dec1 RX, and server login decision/result over one TCP connection.
+
+Source: NEW_ERA_IMPLEMENTATION/test_server/ts25_f1_production_login_tcp_integration.cpp
+CMake: ts25_f1_production_login_tcp_integration
+Evidence: EVIDENCE/1.0-F11_PRODUCTION_LOGIN_TCP_INTEGRATION/REPORT.md
+
+The committed source uses the exact production Enc1 fixture, derives Dec1 from the committed inverse-key routine, decodes the 79-byte F1:01 C3 request, validates version/serial/credentials, and returns c105f10101. It includes POSIX/WinSock handling and Windows ws2_32 linkage.
+
+Validation boundary: this environment has no repository checkout/network, so TS-25 was not executed this turn. Therefore no PASS claim is made. TS-21/TS-22 independently prove production F1:01 TX; TS-24 proves decision/result mapping.
