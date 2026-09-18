@@ -377,3 +377,12 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Expected success result: c105f10101.
 - Runtime PASS is intentionally not claimed because the execution container has no repository checkout/network.
 - TS-21/TS-22 remain the independent production-key TX proofs; TS-24 proves result mapping.
+
+
+## FASE 1 — 0D Renderer Baseline (2026-09-18)
+- **0D-1 EXECUTED/DELIVERED**: renderer architecture baseline recovered from pinned `wongddd/muonline@580472e`.
+- Evidence: `EVIDENCE/0D-1_RENDERER_ARCHITECTURE_BASELINE/REPORT.md`.
+- Confirmed layers: OpenGL compatibility/immediate mode, scene pass ordering, BMD mesh/material rendering, texture cache, camera/tour system, optional GLSL compatibility shaders.
+- Optimization direction recorded without claiming implementation equivalence: persistent GPU buffers, batched draws, explicit material/state sorting, resource handles, compatible camera semantics.
+- Boundary: original runtime performance, exact draw counts, shader frequency, and full visual equivalence remain unverified.
+
