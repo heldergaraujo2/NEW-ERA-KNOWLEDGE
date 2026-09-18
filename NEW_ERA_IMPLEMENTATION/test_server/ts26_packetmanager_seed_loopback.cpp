@@ -31,15 +31,21 @@ int main() {
     assert(pm.EncryptionKeys().key[0] == 0x5BC1);
     assert(pm.EncryptionKeys().xor_[0] == 0xBD1D);
 
-    // XorData is the exact reverse-index transform used by ExtractPacket.
-    // Apply it twice to a deterministic packet and verify involution.
-    std::vector<uint8_t> packet = {0xC1, 0x0A, 0xF3, 0x03, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60};
-    const auto original = packet;
-    assert(pm.AddData(packet, &err));
-    pm.XorData(9, 2);
+    // Reconstruct a wire packet with the exact inverse recurrence:
+    // wire[n] = plain[n] ^ wire[n-1] ^ m_XorFilter[n%32].
+    // ExtractPacket then applies the upstream descending transform and recovers
+    // the original plaintext bytes.
+    const std::vector<uint8_t> original = {
+        0xC1, 0x0A, 0xF3, 0x03, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60};
+    std::vector<uint8_t> wire = original;
+    const auto& filter = pm.XorFilter();
+    for (std::size_t n = 3; n < wire.size(); ++n) {
+        wire[n] = static_cast<uint8_t>(
+            original[n] ^ wire[n - 1] ^ filter[n % filter.size()]);
+    }
+    assert(pm.AddData(wire, &err));
     std::vector<uint8_t> transformed;
     assert(pm.ExtractPacket(transformed, &err));
-    // ExtractPacket applies the same reverse transform, restoring the original.
     assert(transformed == original);
 
     std::remove(path.c_str());
