@@ -394,3 +394,11 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Validation: C++17 -Wall -Wextra -Wpedantic; 0D-2 renderer material evaluator: PASS, exit 0.
 - Evidence: EVIDENCE/0D-2_RENDERER_MATERIAL_EVALUATOR/REPORT.md.
 - Boundary: abstraction is not claimed as original internal architecture; undocumented flag combinations and original runtime equivalence remain open.
+
+
+## FASE 1 — 0D-3 Renderer Triangle Batch Contract (2026-09-18)
+- **EXECUTED/DELIVERED/PASS**: added GPU-oriented triangle batch contract from recovered BMD triangle/index semantics.
+- Core: `NEW_ERA_IMPLEMENTATION/renderer/renderer_mesh_batch.h`; regression: `test_renderer_mesh_batch.cpp`.
+- Validation: C++17 `-Wall -Wextra -Wpedantic -pthread`; `0D-3 renderer triangle batch contract: PASS`, exit 0.
+- Evidence: `EVIDENCE/0D-3_RENDERER_TRIANGLE_BATCH/REPORT.md`.
+- Boundary: no GPU backend/performance equivalence; non-triangle and material-specific generation remain open.
