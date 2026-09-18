@@ -302,3 +302,9 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - **1.0-D F1:03**: EXECUTED/DELIVERED/PASS — hacking-check C3 builder + TCP loopback; evidence `EVIDENCE/1.0-D_F1_03_HACKING_CHECK/REPORT.md`.
 - **1.0-E F1 RX**: EXECUTED/DELIVERED/PASS — F1:00 version validation + F1:01 login-result parser/mapping + TCP loopback; evidence `EVIDENCE/1.0-E_F1_RX/REPORT.md`; target `ts16_f1_login_rx_loopback`.
 - F1 client-side MVP is now covered for F1:00 RX, F1:01 TX, F1:01 RX, F1:02 TX, and F1:03 TX. Remaining boundary: production Enc1.dat interoperability and original Windows/MU runtime integration are not verified.
+
+
+## FASE 1 — F1 client flow completion (2026-09-18)
+- 1.0-F2 EXECUTED/DELIVERED: F1 login session state machine, evidence EVIDENCE/1.0-F2_F1_LOGIN_SESSION/REPORT.md.
+- 1.0-F3 EXECUTED/DELIVERED: F1 end-to-end coordinator (F1:00 -> F1:01 C3 -> F1:01 result), evidence EVIDENCE/1.0-F3_F1_END_TO_END_FLOW/REPORT.md.
+- TS-18 validation is a recreated TCP integration fixture against the previously proven TS-13 C3 builder contract; no production-key or original Windows/MU runtime claim.
