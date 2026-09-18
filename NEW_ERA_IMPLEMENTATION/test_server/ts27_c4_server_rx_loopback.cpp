@@ -29,18 +29,12 @@ static newera::crypto::PacketCryptoSM::Keys Invert(const newera::crypto::PacketC
 }
 
 int main() {
-    static const uint8_t enc1[54] = {
-        0x12,0x11,0x36,0x00,0x00,0x00,0xD4,0x53,0x09,0x3F,0x01,0x41,0x5E,0xE2,0xE2,0x68,
-        0xD3,0x93,0x2D,0x06,0xDF,0x20,0x5A,0xFC,0x08,0x3F,0x00,0xEC,0x5C,0xE2,0xD1,0x37,
-        0xD2,0x93,0xF0,0x92,0xDE,0x20,0x86,0x1A,0x08,0x3F,0xD2,0x76,0x5C,0xE2,0xFA,0x41,
-        0xD2,0x93,0x86,0x35,0xDE,0x20
-    };
-    const std::string path="/tmp/newera_enc1_c4.dat";
-    FILE* f=std::fopen(path.c_str(),"wb"); assert(f);
-    assert(std::fwrite(enc1,1,54,f)==54); std::fclose(f);
-
     newera::crypto::PacketCryptoSM enc,dec; std::string err;
-    if(!enc.LoadKeysFromFile(path,&err,0)){std::cerr<<"load:"<<err<<"\n"; return 2;}
+    newera::crypto::PacketCryptoSM::Keys production_enc{};
+    production_enc.modulus[0]=128079; production_enc.modulus[1]=164742; production_enc.modulus[2]=70235; production_enc.modulus[3]=106898;
+    production_enc.key[0]=23489; production_enc.key[1]=11911; production_enc.key[2]=19816; production_enc.key[3]=13647;
+    production_enc.xor_[0]=48413; production_enc.xor_[1]=46165; production_enc.xor_[2]=15171; production_enc.xor_[3]=37433;
+    enc.SetKeys(production_enc);
     dec.SetKeys(Invert(enc.DebugKeys()));
 
     std::vector<uint8_t> plain(300,0);
