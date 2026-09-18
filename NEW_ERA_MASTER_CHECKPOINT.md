@@ -336,3 +336,12 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Commit: `c8149f6064221374345c550fa9e118866b5990ea`.
 - Evidence: `EVIDENCE/1.0-F7_CMAKE_TS21/REPORT.md`.
 - No fresh full-repository CMake execution claimed because the execution container lacks repository checkout/network; prior TS-21 standalone production-key vector remains PASS.
+
+
+## 1.0-F8 — Production Enc1 F1:01 TCP loopback (2026-09-18)
+- **EXECUTED/DELIVERED — implementation complete**: added TS-22 real TCP loopback around the production-key F1:01 C3 frame; server and client compare the full 79-byte frame exactly.
+- Target: `ts22_f1_01_production_enc1_tcp_loopback`.
+- Implementation commit: `66e105919702bd2cae97e47ac4af934b5f5c22a9`.
+- Final CMake commit: `611eab7444f5bddd7fe289d269f81b42136427ff`.
+- Evidence: `EVIDENCE/1.0-F8_PRODUCTION_ENC1_TCP/REPORT.md`.
+- No fresh full-repository CMake execution claimed due to missing checkout/network; original runtime interoperability remains unverified.
