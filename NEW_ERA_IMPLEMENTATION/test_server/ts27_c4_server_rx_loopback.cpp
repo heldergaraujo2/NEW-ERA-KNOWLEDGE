@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cstdlib>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -22,7 +23,7 @@ static newera::crypto::PacketCryptoSM::Keys Invert(const newera::crypto::PacketC
         uint32_t m=in.modulus[i], a=in.key[i]%m;
         int64_t t=0,nt=1,r=m,nr=a;
         while(nr){int64_t q=r/nr; int64_t z=t-q*nt; t=nt; nt=z; int64_t rr=r-q*nr; r=nr; nr=rr;}
-        if(r!=1){std::cerr<<"inverse fail "<<i<<"\n"; return 3;} if(t<0)t+=m; out.key[i]=static_cast<uint32_t>(t);
+        if(r!=1){std::cerr<<"inverse fail "<<i<<"\n"; std::abort();} if(t<0)t+=m; out.key[i]=static_cast<uint32_t>(t);
     }
     return out;
 }
