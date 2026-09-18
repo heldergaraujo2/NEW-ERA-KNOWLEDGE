@@ -190,3 +190,15 @@ Evidence: EVIDENCE/1.0-F6_PRODUCTION_ENC1/REPORT.md
 Verified output: TS-21 F1:01 production Enc1 loader + C3 golden: PASS
 
 Validation: C++17, -Wall -Wextra -Wpedantic -pthread, exact 54-byte production blob fixture, loader/key assertions, exact 79-byte golden comparison. Production-key crypto interoperability is now verified at the deterministic vector level. Original Windows/MU/GameServer runtime interoperability remains unverified.
+
+
+## 1.0-F7 — CMake integration of TS-21 production Enc1 vector (2026-09-18)
+**STATUS: EXECUTED / DELIVERED**
+
+The already verified TS-21 production Enc1/F1:01 deterministic regression is now integrated into `NEW_ERA_IMPLEMENTATION/test_server/CMakeLists.txt` as target `ts21_f1_01_production_enc1_vector`, using the committed source `NEW_ERA_IMPLEMENTATION/mvp_login/loopback_f1_01_login_request/test_f1_01_production_enc1_vector.cpp`, C++17 and `ws2_32` on Windows.
+
+Evidence: `EVIDENCE/1.0-F7_CMAKE_TS21/REPORT.md`.
+
+Commit: `c8149f6064221374345c550fa9e118866b5990ea`.
+
+Validation boundary: no repository checkout/network in the execution container, so no fresh full-repository CMake execution is claimed. TS-21's previously recorded standalone C++17 production-key vector remains PASS. Original Windows/MU/GameServer interoperability remains unverified.
