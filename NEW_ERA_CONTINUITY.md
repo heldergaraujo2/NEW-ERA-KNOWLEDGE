@@ -229,3 +229,18 @@ Key basis: KEYS_MANIFEST.md proves Dec1 is the server-RX inverse-key partner of 
 Validation: C++17 decoder syntax/compile fixture PASS; independent executable production-key encrypt/decrypt/stream-XOR/Bux round-trip PASS with all selected fields recovered exactly. Full repository CMake execution remains unclaimed because the execution container has no checkout/network.
 
 Boundary: original GameServer authentication/database/JoinServer decision code and original Windows runtime remain separate layers.
+
+
+## 1.0-F10 — F1 server login decision/result layer (2026-09-18)
+**STATUS: EXECUTED / DELIVERED / PASS — compatible reconstruction layer**
+
+Implemented deterministic server-side validation/result mapping behind the proven F1:01 decoder. Validates non-empty credentials, non-zero packet serial, expected Version and ProtocolSerial when configured; maps documented JoinServer result values 0..4 directly to F1:01 result bytes; emits result 6 for version/serial failure.
+
+Implementation: NEW_ERA_IMPLEMENTATION/mvp_login/f1_login_server_decision.h
+Regression: NEW_ERA_IMPLEMENTATION/mvp_login/loopback_f1_login_server_decision/test_f1_login_server_decision.cpp
+CMake target: ts24_f1_login_server_decision
+Evidence: EVIDENCE/1.0-F10_SERVER_LOGIN_DECISION/REPORT.md
+
+Validation: recreated C++17 fixture with -Wall -Wextra -Wpedantic executed successfully. Observed: TS-24 F1 server login decision/result mapping: PASS. Full repository CMake execution remains unclaimed because the execution container has no checkout/network.
+
+Boundary: compatible decision-layer reconstruction only; original GameServer database/account/connection-state/JoinServer internals remain unverified.
