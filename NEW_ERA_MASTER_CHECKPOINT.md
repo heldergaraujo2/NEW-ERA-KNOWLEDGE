@@ -367,3 +367,13 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - Validation output: TS-24 F1 server login decision/result mapping: PASS.
 - Golden result success: c105f10101; version/serial failure: c105f10106.
 - Boundary: this is a compatible reconstruction; original database/authentication/JoinServer internals and original Windows runtime remain unverified.
+
+
+## 1.0-F11 — F1 production login TCP integration (2026-09-18)
+- EXECUTED/DELIVERED: TS-25 composition source added for production F1:01 TX -> TCP -> server Dec1 RX -> decision -> F1:01 success result.
+- Source: NEW_ERA_IMPLEMENTATION/test_server/ts25_f1_production_login_tcp_integration.cpp
+- CMake target: ts25_f1_production_login_tcp_integration
+- Evidence: EVIDENCE/1.0-F11_PRODUCTION_LOGIN_TCP_INTEGRATION/REPORT.md
+- Expected success result: c105f10101.
+- Runtime PASS is intentionally not claimed because the execution container has no repository checkout/network.
+- TS-21/TS-22 remain the independent production-key TX proofs; TS-24 proves result mapping.
