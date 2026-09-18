@@ -1,0 +1,17 @@
+name: NEW-ERA TS-28 DES-XEX3 validation
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ts28-desx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S NEW_ERA_IMPLEMENTATION/test_server -B build/ts28 -DCMAKE_BUILD_TYPE=Release
+      - name: Build TS-28
+        run: cmake --build build/ts28 --config Release --target ts28_des_xex3_loopback --parallel 2
+      - name: Run TS-28
+        run: build/ts28/ts28_des_xex3_loopback
