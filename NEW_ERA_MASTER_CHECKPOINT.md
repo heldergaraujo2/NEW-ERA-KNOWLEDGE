@@ -308,3 +308,11 @@ Test Server atualizado para aceitar multiplas conexoes: ao desconectar o cliente
 - 1.0-F2 EXECUTED/DELIVERED: F1 login session state machine, evidence EVIDENCE/1.0-F2_F1_LOGIN_SESSION/REPORT.md.
 - 1.0-F3 EXECUTED/DELIVERED: F1 end-to-end coordinator (F1:00 -> F1:01 C3 -> F1:01 result), evidence EVIDENCE/1.0-F3_F1_END_TO_END_FLOW/REPORT.md.
 - TS-18 validation is a recreated TCP integration fixture against the previously proven TS-13 C3 builder contract; no production-key or original Windows/MU runtime claim.
+
+
+## FASE 1 — F1 live TCP integration update (2026-09-18)
+- **1.0-F4 EXECUTED/DELIVERED/PASS**: real TCP client/server fixture exercises the committed LoginFlow and committed BuildC3 end-to-end at client-flow level: F1:00 -> HeroKey/version validation -> 79-byte C3 F1:01 TX -> F1:01 success -> LoggedIn.
+- Evidence: EVIDENCE/1.0-F4_F1_LIVE_TCP_FLOW/REPORT.md.
+- Target: ts19_f1_login_flow_tcp_loopback.
+- Validation: C++17 + CMake fixture, real TCP loopback, exit 0.
+- Boundary: deterministic test keys; no production Enc1.dat or original Windows/MU/GameServer interoperability claim.
